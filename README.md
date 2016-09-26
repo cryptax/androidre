@@ -54,6 +54,10 @@ To run an Android emulator (5.1):
 $ emulator &
 ```
 
+# Hack.lu Workshop
+
+Workshop samples will be provided by other means. The image does not provide any Android sample.
+
 # Digest
 
 sha256:865dce76c1cf431a55d25678eddeb28e0dbe83809dc5d8a6c82991d60bbe241a size: 16029

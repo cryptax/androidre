@@ -1,6 +1,6 @@
 FROM ubuntu:16.04
 
-MAINTAINER Axelle Apvrille <aapvrille@fortinet.com>
+MAINTAINER Axelle Apvrille <aafortinet@gmail.com>
 ENV REFRESHED_AT 2016-08-30
 
 RUN DEBIAN_FRONTEND=noninteractive
@@ -11,6 +11,7 @@ ENV JD_VERSION "1.4.0"
 ENV PROCYON_VERSION "0.5.30"
 ENV ANDROID_SDK_VERSION "r24.4.1"
 ENV ANDROID_BUILD_VERSION "24.0.2"
+# change this ;)
 ENV SSH_PASSWORD "rootpass"
 ENV VNC_PASSWORD "rootpass"
 ENV USER root
