@@ -39,7 +39,7 @@ $ docker run -d --name androidre -p 5022:22 -p 5900:5900 cryptax/android-re
 
 Connect. Default password for root is **rootpass**. Modify Dockerfile to change this.
 ```
-$ ssh -X -p 5022 root@cuckoo
+$ ssh -X -p 5022 root@127.0.0.1
 ```
 
 Alternative to ssh login: vnc, with **rootpass** as default password.
