@@ -1,7 +1,5 @@
 # Disclaimer
 
-I am currently working on this container for a [workshop at Hack.lu 2016](http://2016.hack.lu). It may not fully work yet.
-
 Please use responsibly.
 
 # Description
@@ -60,4 +58,4 @@ Workshop samples will be provided by other means. The image does not provide any
 
 # Digest
 
-sha256:865dce76c1cf431a55d25678eddeb28e0dbe83809dc5d8a6c82991d60bbe241a size: 16029
+sha256:19137ff85e31de6efacd17aa6463339262d4024839b0575ca737e9df12558369
