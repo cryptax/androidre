@@ -1,17 +1,16 @@
 FROM ubuntu:16.04
 
 MAINTAINER Axelle Apvrille <aafortinet@gmail.com>
-ENV REFRESHED_AT 2016-08-30
+ENV REFRESHED_AT 2016-10-21
 
 RUN DEBIAN_FRONTEND=noninteractive
 
-ENV SMALI_VERSION "2.1.3"
-ENV APKTOOL_VERSION "2.2.0"
+ENV SMALI_VERSION "2.2b4"
+ENV APKTOOL_VERSION "2.2.1"
 ENV JD_VERSION "1.4.0"
 ENV PROCYON_VERSION "0.5.30"
 ENV ANDROID_SDK_VERSION "r24.4.1"
-ENV ANDROID_BUILD_VERSION "24.0.2"
-# change this ;)
+ENV ANDROID_BUILD_VERSION "25.0.0"
 ENV SSH_PASSWORD "rootpass"
 ENV VNC_PASSWORD "rootpass"
 ENV USER root
@@ -49,6 +48,8 @@ RUN apt-get update && \
     p7zip-full \
     nodejs \
     npm \
+    tree \
+    firefox \
     libc6-i686:i386 \ 
     libexpat1:i386 \
     libffi6:i386 \
