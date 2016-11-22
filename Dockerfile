@@ -1,7 +1,7 @@
 FROM ubuntu:16.04
 
 MAINTAINER Axelle Apvrille <aafortinet@gmail.com>
-ENV REFRESHED_AT 2016-10-21
+ENV REFRESHED_AT 2016-11-22
 
 RUN DEBIAN_FRONTEND=noninteractive
 
@@ -11,6 +11,7 @@ ENV JD_VERSION "1.4.0"
 ENV PROCYON_VERSION "0.5.30"
 ENV ANDROID_SDK_VERSION "r24.4.1"
 ENV ANDROID_BUILD_VERSION "25.0.0"
+ENV ANDROID_NDK_VERSION "r13b"
 ENV SSH_PASSWORD "rootpass"
 ENV VNC_PASSWORD "rootpass"
 ENV USER root
@@ -33,7 +34,6 @@ RUN apt-get update && \
     nano \
     iptables \
     iputils-ping \
-    maven \
     python-protobuf \
     python-pip \
     python-crypto \
@@ -98,7 +98,7 @@ RUN mkdir ~/.vnc
 RUN  x11vnc -storepasswd $VNC_PASSWORD ~/.vnc/passwd
 RUN echo '#!/bin/bash' >> /root/startXvfb.sh
 RUN echo "Xvfb :1 +extension GLX +render -noreset -screen 0 1280x1024x24& DISPLAY=:1 /usr/bin/xfce4-session >> /root/xsession.log 2>&1 &"  >> /root/startXvfb.sh
-RUN echo "x11vnc -usepw -display :1"  >> /root/startXvfb.sh
+RUN echo "x11vnc -loop -usepw -display :1"  >> /root/startXvfb.sh
 RUN echo "exit 0"  >> /root/startXvfb.sh
 
 # Configure supervisor
@@ -175,7 +175,7 @@ RUN cd /opt && git clone https://github.com/radare/radare2
 RUN cd /opt/radare2 && sys/install.sh && make symstall
 
 # Simplify
-RUN cd /opt && git clone --recursive https://github.com/CalebFenton/simplify.git && cd simplify && ./gradlew fatjar && cd /opt && ln -s /opt/simplify/simplify/build/libs/simplify.jar simplify.jar
+#RUN cd /opt && git clone --recursive https://github.com/CalebFenton/simplify.git && cd simplify && ./gradlew fatjar && cd /opt && ln -s /opt/simplify/simplify/build/libs/simplify.jar simplify.jar
 
 # Small tools
 RUN wget -q -O "/opt/oat2dex.py" https://github.com/jakev/oat2dex-python/blob/master/oat2dex.py
@@ -211,8 +211,9 @@ RUN echo n | android create avd --force --name "Android442" --target android-19 
 RUN mkdir ${ANDROID_HOME}/tools/keymaps && touch ${ANDROID_HOME}/tools/keymaps/en-us
 
 # Android NDK
-#RUN wget -q -O "android-ndk-r12b-linux-x86_64.zip" https://dl.google.com/android/repository/android-ndk-r12b-linux-x86_64.zip
-#export PATH=$PATH:/opt/android-ndk-r12b
+RUN wget -q -O "/opt/android-ndk-${ANDROID_NDK_VERSION}-linux-x86-64.zip" https://dl.google.com/android/repository/android-ndk-${ANDROID_NDK_VERSION}-linux-x86_64.zip && cd /opt && unzip /opt/android-ndk-${ANDROID_NDK_VERSION}-linux-x86-64.zip && rm -f /opt/android-ndk-${ANDROID_NDK_VERSION}-linux-x86-64.zip
+ENV NDK "/opt/android-ndk-${ANDROID_NDK_VERSION}"
+
 
 
 # Cleaning up and final setup -------------------------

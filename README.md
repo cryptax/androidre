@@ -22,7 +22,6 @@ This container contains many tools to reverse engineer Android applications.
 - krakatau
 - procyon
 - radare2
-- simplify
 
 Those are free tools, or free demos.
 
@@ -56,6 +55,3 @@ $ emulator &
 
 Workshop samples will be provided by other means. The image does not provide any Android sample.
 
-# Digest
-
-sha256:19137ff85e31de6efacd17aa6463339262d4024839b0575ca737e9df12558369
