@@ -54,7 +54,7 @@ Unless you want to build your own image - then see below the _Customization_ sec
 
 Run the container:
 ```
-$ docker run -d --name androidre -p 5022:22 -p 5900:5900 cryptax/android-re
+$ docker run -d --name androidre -p SSH_PORT:22 -p VNC_PORT:5900 cryptax/android-re
 ```
 
 where:
@@ -94,10 +94,12 @@ Note that X forwarding is known to have issues on Macs.
 Please use `vncviewer`
 
 ```
-$ vncviewer host::VNC_PORT
+$ vncviewer HOST::VNC_PORT
 ```
 
-where VNC_PORT is the VNC port the container forwards. In my docker run example, it's 5900.
+where:
+- HOST is the IP address of the host running the container. Example: 127.0.0.1
+- VNC_PORT is the VNC port the container forwards. In my docker run example, it's 5900.
 
 
 ## Misc info
@@ -108,6 +110,8 @@ To run an Android emulator (5.1):
 ```
 $ emulator &
 ```
+
+`emulator` is an alias in `.bashrc`, and points to an Android 5.1 emulator.
 
 # Customization
 
