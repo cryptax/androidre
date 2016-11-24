@@ -122,3 +122,6 @@ This docker image was used for a free workshop at [Hack.lu](http://2016.hack.lu)
 Workshop samples were provided to participants by other means.
 This image **does not provide any Android sample**.
 
+# Digest
+
+sha256:eca79989602c18e77275f04b5ec44880b0468c278d920fa3a990f5007e36b144
