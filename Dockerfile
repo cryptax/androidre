@@ -1,7 +1,7 @@
 FROM ubuntu:16.04
 
 MAINTAINER Axelle Apvrille <aafortinet@gmail.com>
-ENV REFRESHED_AT 2016-11-22
+ENV REFRESHED_AT 2016-12-15
 
 RUN DEBIAN_FRONTEND=noninteractive
 
@@ -9,8 +9,9 @@ ENV SMALI_VERSION "2.2b4"
 ENV APKTOOL_VERSION "2.2.1"
 ENV JD_VERSION "1.4.0"
 ENV PROCYON_VERSION "0.5.30"
-ENV ANDROID_SDK_VERSION "r24.4.1"
-ENV ANDROID_BUILD_VERSION "25.0.0"
+#ENV ANDROID_SDK_VERSION "r24.4.1"
+ENV ANDROID_SDK_VERSION "r25.2.3"
+ENV ANDROID_BUILD_VERSION "25.0.2"
 ENV ANDROID_NDK_VERSION "r13b"
 ENV SSH_PASSWORD "rootpass"
 ENV VNC_PASSWORD "rootpass"
@@ -193,9 +194,9 @@ RUN wget -q -O "/opt/idademo695_linux.tgz" https://out7.hex-rays.com/files/idade
 RUN cd opt && tar xvf idademo695_linux.tgz && chown -R root.root ./idademo695 && rm -f idademo695_linux.tgz
 
 # Android emulator
-RUN wget -q -O "/opt/android-sdk.tgz" https://dl.google.com/android/android-sdk_$ANDROID_SDK_VERSION-linux.tgz
-RUN tar xvf /opt/android-sdk.tgz -C /opt
-RUN rm -f /opt/android-sdk.tgz
+RUN wget -q -O "/opt/tools-linux.zip" https://dl.google.com/android/repository/tools_$ANDROID_SDK_VERSION-linux.zip
+RUN unzip /opt/tools-linux.zip -d /opt/android-sdk-linux
+RUN rm -f /opt/tools-linux.zip
 ENV ANDROID_HOME /opt/android-sdk-linux
 ENV PATH $PATH:/opt:$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools
 RUN echo y | android update sdk --filter tools --no-ui --force -a
@@ -208,6 +209,9 @@ RUN echo n | android create avd --force --name "Arm51" --target android-22 --abi
 RUN echo y | android update sdk --filter android-19 --no-ui --force -a
 RUN echo y | android update sdk --filter sys-img-armeabi-v7a-android-19 --no-ui --force -a
 RUN echo n | android create avd --force --name "Android442" --target android-19 --abi "default/armeabi-v7a"
+RUN echo y | android update sdk --filter android-24 --no-ui --force -a
+RUN echo y | android update sdk --filter sys-img-armeabi-v7a-android-24 --no-ui --force -a
+RUN echo n | android create avd --force --name "Android70" --target android-24 --abi "default/armeabi-v7a"
 RUN mkdir ${ANDROID_HOME}/tools/keymaps && touch ${ANDROID_HOME}/tools/keymaps/en-us
 
 # Android NDK
@@ -221,7 +225,8 @@ RUN apt-get autoremove -yqq
 RUN apt-get clean
 
 RUN echo "export PATH=$PATH" >> /etc/profile
-RUN echo "alias emulator='/opt/android-sdk-linux/tools/emulator64-arm -avd Arm51 -no-boot-anim -partition-size 512 -no-audio'" >> /root/.bashrc
+# For Android 5.1: ./emulator -avd "Arm51" -no-boot-anim -no-audio -partition-size 512 
+RUN echo "alias emulator='/opt/android-sdk-linux/tools/emulator -avd "Android70" -no-boot-anim'" >> /root/.bashrc
 
 RUN mkdir -p /workshop
 WORKDIR /workshop

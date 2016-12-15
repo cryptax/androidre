@@ -11,7 +11,7 @@ Please use responsibly.
 
 This container contains many tools to reverse engineer Android applications.
 
-- Android emulators 4.4.2 and 5.1
+- Android emulators 4.4.2, 5.1 and 7.0
 - androguard
 - apkid
 - apktool
@@ -106,7 +106,7 @@ where:
 
 Android reverse engineering tools are installed in **/opt**.
 
-To run an Android emulator (5.1):
+To run an Android emulator (7.0):
 ```
 $ emulator &
 ```
@@ -128,4 +128,4 @@ This image **does not provide any Android sample**.
 
 # Digest
 
-sha256:eca79989602c18e77275f04b5ec44880b0468c278d920fa3a990f5007e36b144
+sha256:4fddf66e1cfb2a508f1fd1d74510c17976a18850d61d721e67cd5b8d611f920d
