@@ -108,10 +108,12 @@ Android reverse engineering tools are installed in **/opt**.
 
 To run an Android emulator (7.0):
 ```
-$ emulator &
+$ emulator7 &
 ```
 
-`emulator` is an alias in `.bashrc`, and points to an Android 5.1 emulator.
+`emulator7` is an alias in `.bashrc`, and points to an Android 7.0 emulator.
+
+To run an Android emulator 5.0 use the alias `emulator5` instead.
 
 # Customization
 
@@ -128,4 +130,4 @@ This image **does not provide any Android sample**.
 
 # Digest
 
-sha256:4fddf66e1cfb2a508f1fd1d74510c17976a18850d61d721e67cd5b8d611f920d
+sha256:25ee7948d600bf8528d34022c299423c8474c5aa1ed9a8a1b9703cb121758acc
