@@ -45,7 +45,7 @@ There are three steps:
 Normally, you just need to do:
 
 ```
-$ docker pull cryptax/android-re
+$ docker pull cryptax/android-re:25.2.5
 ```
 
 Unless you want to build your own image - then see below the _Customization_ section.
@@ -130,4 +130,4 @@ This image **does not provide any Android sample**.
 
 # Digest
 
-sha256:25ee7948d600bf8528d34022c299423c8474c5aa1ed9a8a1b9703cb121758acc
+sha256:151c75d3ae2014725cd85ba037ac280d19babf594213656fa54e8567af2bbc13

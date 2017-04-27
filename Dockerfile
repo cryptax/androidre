@@ -1,18 +1,17 @@
 FROM ubuntu:16.04
 
 MAINTAINER Axelle Apvrille <aafortinet@gmail.com>
-ENV REFRESHED_AT 2016-12-15
+ENV REFRESHED_AT 2017-04-25
 
 RUN DEBIAN_FRONTEND=noninteractive
 
 ENV SMALI_VERSION "2.2b4"
-ENV APKTOOL_VERSION "2.2.1"
+ENV APKTOOL_VERSION "2.2.2"
 ENV JD_VERSION "1.4.0"
 ENV PROCYON_VERSION "0.5.30"
-#ENV ANDROID_SDK_VERSION "r24.4.1"
-ENV ANDROID_SDK_VERSION "r25.2.3"
-ENV ANDROID_BUILD_VERSION "25.0.2"
-ENV ANDROID_NDK_VERSION "r13b"
+ENV ANDROID_SDK_VERSION "r25.2.5"
+ENV ANDROID_BUILD_VERSION "25.0.3"
+ENV ANDROID_NDK_VERSION "r14b"
 ENV SSH_PASSWORD "rootpass"
 ENV VNC_PASSWORD "rootpass"
 ENV USER root
@@ -213,6 +212,7 @@ RUN echo y | android update sdk --filter android-24 --no-ui --force -a
 RUN echo y | android update sdk --filter sys-img-armeabi-v7a-android-24 --no-ui --force -a
 RUN echo n | android create avd --force --name "Android70" --target android-24 --abi "default/armeabi-v7a"
 RUN mkdir ${ANDROID_HOME}/tools/keymaps && touch ${ANDROID_HOME}/tools/keymaps/en-us
+ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:${ANDROID_HOME}/tools/lib64/qt/lib:${ANDROID_HOME}/tools/lib64
 
 # Android NDK
 RUN wget -q -O "/opt/android-ndk-${ANDROID_NDK_VERSION}-linux-x86-64.zip" https://dl.google.com/android/repository/android-ndk-${ANDROID_NDK_VERSION}-linux-x86_64.zip && cd /opt && unzip /opt/android-ndk-${ANDROID_NDK_VERSION}-linux-x86-64.zip && rm -f /opt/android-ndk-${ANDROID_NDK_VERSION}-linux-x86-64.zip
@@ -225,8 +225,9 @@ RUN apt-get autoremove -yqq
 RUN apt-get clean
 
 RUN echo "export PATH=$PATH" >> /etc/profile
-# For Android 5.1: ./emulator -avd "Arm51" -no-boot-anim -no-audio -partition-size 512 
-RUN echo "alias emulator='/opt/android-sdk-linux/tools/emulator -avd "Android70" -no-boot-anim'" >> /root/.bashrc
+RUN echo "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH" >> /etc/profile
+RUN echo "alias emulator='/opt/android-sdk-linux/tools/emulator64-arm -avd Arm51 -no-audio -partition-size 512 -no-boot-anim'" >> /root/.bashrc
+RUN echo "alias emulator7='/opt/android-sdk-linux/tools/emulator64-arm -avd Android70 -no-boot-anim'" >> /root/.bashrc
 
 RUN mkdir -p /workshop
 WORKDIR /workshop
