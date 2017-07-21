@@ -1,17 +1,18 @@
 FROM ubuntu:16.04
 
-MAINTAINER Axelle Apvrille <aafortinet@gmail.com>
-ENV REFRESHED_AT 2017-04-25
+MAINTAINER Axelle Apvrille 
+ENV REFRESHED_AT 2017-07-20
 
 RUN DEBIAN_FRONTEND=noninteractive
 
-ENV SMALI_VERSION "2.2b4"
-ENV APKTOOL_VERSION "2.2.2"
+ENV SMALI_VERSION "2.2.1"
+ENV APKTOOL_VERSION "2.2.3"
 ENV JD_VERSION "1.4.0"
 ENV PROCYON_VERSION "0.5.30"
 ENV ANDROID_SDK_VERSION "r25.2.5"
 ENV ANDROID_BUILD_VERSION "25.0.3"
 ENV ANDROID_NDK_VERSION "r14b"
+ENV FRIDA_VERSION "10.2.3"
 ENV SSH_PASSWORD "rootpass"
 ENV VNC_PASSWORD "rootpass"
 ENV USER root
@@ -50,6 +51,7 @@ RUN apt-get update && \
     npm \
     tree \
     firefox \
+    python3 \
     libc6-i686:i386 \ 
     libexpat1:i386 \
     libffi6:i386 \
@@ -172,12 +174,16 @@ RUN cd /opt && git clone https://github.com/bluemutedwisdom/google-play-download
 
 # Radare2
 RUN cd /opt && git clone https://github.com/radare/radare2
-RUN cd /opt/radare2 && sys/install.sh && make symstall
+RUN cd /opt/radare2 && sys/install.sh && make symstall && r2pm init && pip install r2pipe
+
+# Frida
+RUN pip install frida
+RUN cd /opt && wget -q -O "/opt/frida-server.xz" https://github.com/frida/frida/releases/download/${FRIDA_VERSION}/frida-server-${FRIDA_VERSION}-android-arm.xz && unxz /opt/frida-server.xz
 
 # Simplify
 #RUN cd /opt && git clone --recursive https://github.com/CalebFenton/simplify.git && cd simplify && ./gradlew fatjar && cd /opt && ln -s /opt/simplify/simplify/build/libs/simplify.jar simplify.jar
 
-# Small tools
+# Other tools with simple install
 RUN wget -q -O "/opt/oat2dex.py" https://github.com/jakev/oat2dex-python/blob/master/oat2dex.py
 RUN wget -q -O "/opt/extract.sh" https://gist.githubusercontent.com/PaulSec/39245428eb74577c5234/raw/4ff2c87fbe35c0cfdb55af063a6fee072622f292/extract.sh \
     && sed -i 's/\/path\/to\/jd-gui/java -jar \/opt\/jd-gui\.jar/g' /opt/extract.sh \
@@ -187,6 +193,8 @@ RUN mkdir -p /opt/jebPlugins && wget -q -O "/opt/jebPlugins/DeCluster.java" http
 RUN wget -q -O "/opt/ClassyShark.jar" https://github.com/google/android-classyshark/releases/download/6.7/ClassyShark.jar
 RUN wget -q -O "/opt/androarsc.py" https://raw.githubusercontent.com/androguard/androguard/master/androarsc.py
 RUN wget -q -O "/opt/cfr_0_118.jar" http://www.benf.org/other/cfr/cfr_0_118.jar
+RUN cd /opt && git clone https://github.com/Storyyeller/enjarify && ln -s /opt/enjarify/enjarify.sh /usr/bin/enjarify
+
 
 # IDA Pro Demo
 RUN wget -q -O "/opt/idademo695_linux.tgz" https://out7.hex-rays.com/files/idademo695_linux.tgz
@@ -214,6 +222,8 @@ RUN echo n | android create avd --force --name "Android70" --target android-24 -
 RUN mkdir ${ANDROID_HOME}/tools/keymaps && touch ${ANDROID_HOME}/tools/keymaps/en-us
 ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:${ANDROID_HOME}/tools/lib64/qt/lib:${ANDROID_HOME}/tools/lib64
 
+
+
 # Android NDK
 RUN wget -q -O "/opt/android-ndk-${ANDROID_NDK_VERSION}-linux-x86-64.zip" https://dl.google.com/android/repository/android-ndk-${ANDROID_NDK_VERSION}-linux-x86_64.zip && cd /opt && unzip /opt/android-ndk-${ANDROID_NDK_VERSION}-linux-x86-64.zip && rm -f /opt/android-ndk-${ANDROID_NDK_VERSION}-linux-x86-64.zip
 ENV NDK "/opt/android-ndk-${ANDROID_NDK_VERSION}"
@@ -228,6 +238,7 @@ RUN echo "export PATH=$PATH" >> /etc/profile
 RUN echo "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH" >> /etc/profile
 RUN echo "alias emulator='/opt/android-sdk-linux/tools/emulator64-arm -avd Arm51 -no-audio -partition-size 512 -no-boot-anim'" >> /root/.bashrc
 RUN echo "alias emulator7='/opt/android-sdk-linux/tools/emulator64-arm -avd Android70 -no-boot-anim'" >> /root/.bashrc
+RUN echo "export LC_ALL=C" >> /root/.bashrc
 
 RUN mkdir -p /workshop
 WORKDIR /workshop

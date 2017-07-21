@@ -20,6 +20,8 @@ This container contains many tools to reverse engineer Android applications.
 - classyshark
 - CFR
 - dex2jar
+- enjarify
+- frida
 - google play api
 - google play crawler
 - google play downloader
@@ -121,6 +123,18 @@ To change the default password, or for any other changes, modify the `Dockerfile
 
 You are welcome to post issues or suggestions.
 
+# Using [frida](https://www.frida.re/)
+
+Only the part on the Linux host is installed.
+You need to push the frida server to the Android emulator.
+
+```bash
+$ adb push /opt/frida-server /data/local/tmp
+$ adb shell "chmod 755 /data/local/tmp/frida-server"
+$ adb shell
+1|root@generic:/data/local/tmp # ./frida-server
+```
+
 
 # Hack.lu 2016 Workshop
 
@@ -130,4 +144,5 @@ This image **does not provide any Android sample**.
 
 # Digest
 
-sha256:151c75d3ae2014725cd85ba037ac280d19babf594213656fa54e8567af2bbc13
+sha256:0f02906ab078db5a919d9d36470fa2fed5c989cc217dd97ab677e66eaa442e52
+
