@@ -47,12 +47,27 @@ There are three steps:
 Normally, you just need to do:
 
 ```
-$ docker pull cryptax/android-re:25.2.5
+$ docker pull cryptax/android-re:latest
 ```
 
 Unless you want to build your own image - then see below the _Customization_ section.
 
 ## Running the container
+
+### Running the container locally
+
+```
+$ docker run -it --rm -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix cryptax/android-re:latest /bin/bash
+```
+
+You are directly connected to the container.
+
+Note you can also share a directory with your host using `-v hostdir:containerdir`.
+
+
+### Running to connect  via SSH or VNC
+
+**Update**: I am encountering issues for this with recent docker CE versions.
 
 Run the container:
 ```
@@ -115,7 +130,7 @@ $ emulator7 &
 
 `emulator7` is an alias in `.bashrc`, and points to an Android 7.0 emulator.
 
-To run an Android emulator 5.0 use the alias `emulator5` instead.
+To run an Android emulator 5.0 use the alias `emulator` instead.
 
 # Customization
 
