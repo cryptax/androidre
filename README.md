@@ -67,8 +67,6 @@ Note you can also share a directory with your host using `-v hostdir:containerdi
 
 ### Running to connect  via SSH or VNC
 
-**Update**: I am encountering issues for this with recent docker CE versions.
-
 Run the container:
 ```
 $ docker run -d --name androidre -p SSH_PORT:22 -p VNC_PORT:5900 cryptax/android-re
@@ -150,14 +148,14 @@ $ adb shell
 1|root@generic:/data/local/tmp # ./frida-server
 ```
 
+# Workshops
 
-# Hack.lu 2016 Workshop
+This docker image has been used in several workshops (Hack.lu, Insomnihack, Nuit du Hack) and will be used at GreHack.
 
-This docker image was used for a free workshop at [Hack.lu](http://2016.hack.lu).
-Workshop samples were provided to participants by other means.
+Workshop samples are provided to participants by other means.
 This image **does not provide any Android sample**.
 
 # Digest
 
-sha256:63c118f6ea8c19b12015c68281b879e47ed48d1550c9ce084773842e093fc4dc
+sha256:e94630f544b76ae98061e4415a7815c656a09524530185d62441f9ee7b5e4a2c
 

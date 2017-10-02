@@ -1,10 +1,8 @@
 FROM ubuntu:16.04
 
-MAINTAINER Axelle Apvrille
-ENV REFRESHED_AT 2017-09-28
+ENV REFRESHED_AT 2017-10-02
 
-RUN DEBIAN_FRONTEND=noninteractive
-
+ARG DEBIAN_FRONTEND=noninteractive
 ENV SMALI_VERSION "2.2.1"
 ENV APKTOOL_VERSION "2.3.0"
 ENV JD_VERSION "1.4.0"
@@ -16,7 +14,7 @@ ENV FRIDA_VERSION "10.6.3"
 ENV SSH_PASSWORD "rootpass"
 ENV VNC_PASSWORD "rootpass"
 ENV USER root
-ENV DISPLAY :1
+ENV TERM xterm
 
 # System install ------------------------------
 RUN dpkg --add-architecture i386
@@ -91,6 +89,7 @@ RUN mkdir -p /var/log/supervisor
 RUN mkdir /var/run/sshd
 RUN echo "root:$SSH_PASSWORD" | chpasswd
 RUN sed -i 's/PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
+RUN echo "X11UseLocalhost no" >> /etc/ssh/sshd_config
 RUN sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
 # SSH login fix. Otherwise user is kicked off after login
 
@@ -244,7 +243,7 @@ RUN mkdir -p /workshop
 WORKDIR /workshop
 VOLUME ["/data"] # to be used for instance to pass along samples
 
-CMD [ "/usr/bin/supervisord" ]
+CMD [ "/usr/bin/supervisord", "-c",  "/etc/supervisor/conf.d/supervisord.conf" ]
 
 EXPOSE 5554
 EXPOSE 5555
