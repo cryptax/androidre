@@ -1,16 +1,15 @@
 FROM ubuntu:16.04
 
-ENV REFRESHED_AT 2017-10-02
+MAINTAINER Axelle Apvrille 
+ENV REFRESHED_AT 2018-04-12
 
 ARG DEBIAN_FRONTEND=noninteractive
-ENV SMALI_VERSION "2.2.1"
-ENV APKTOOL_VERSION "2.3.0"
+ENV SMALI_VERSION "2.2.2"
+ENV APKTOOL_VERSION "2.3.1"
 ENV JD_VERSION "1.4.0"
 ENV PROCYON_VERSION "0.5.30"
-ENV ANDROID_SDK_VERSION "r25.2.5"
-ENV ANDROID_BUILD_VERSION "25.0.3"
-ENV ANDROID_NDK_VERSION "r14b"
-ENV FRIDA_VERSION "10.6.3"
+ENV ANDROID_SDK_VERSION "3859397"
+ENV FRIDA_VERSION "10.7.7"
 ENV SSH_PASSWORD "rootpass"
 ENV VNC_PASSWORD "rootpass"
 ENV USER root
@@ -50,6 +49,10 @@ RUN apt-get update && \
     tree \
     firefox \
     python3 \
+    qemu-kvm \
+    libvirt-bin \
+    ubuntu-vm-builder \
+    bridge-utils \
     libc6-i686:i386 \ 
     libexpat1:i386 \
     libffi6:i386 \
@@ -80,7 +83,9 @@ RUN apt-get update && \
     xfce4 \
     xfce4-terminal \
     supervisor \
-    && rm -rf /var/lib/apt/lists/*		   
+    && rm -rf /var/lib/apt/lists/*
+
+RUN pip install --upgrade pip
 
 # We need supervisor to launch ssh and vnc
 RUN mkdir -p /var/log/supervisor
@@ -176,7 +181,7 @@ RUN cd /opt && git clone https://github.com/radare/radare2
 RUN cd /opt/radare2 && sys/install.sh && make symstall && r2pm init && pip install r2pipe
 
 # Frida
-RUN pip install frida
+RUN pip install frida 
 RUN cd /opt && wget -q -O "/opt/frida-server.xz" https://github.com/frida/frida/releases/download/${FRIDA_VERSION}/frida-server-${FRIDA_VERSION}-android-arm.xz && unxz /opt/frida-server.xz
 
 # Simplify
@@ -195,39 +200,25 @@ RUN wget -q -O "/opt/cfr_0_118.jar" http://www.benf.org/other/cfr/cfr_0_118.jar
 RUN cd /opt && git clone https://github.com/Storyyeller/enjarify && ln -s /opt/enjarify/enjarify.sh /usr/bin/enjarify
 
 
-# IDA Pro Demo
-RUN wget -q -O "/opt/idademo695_linux.tgz" https://out7.hex-rays.com/files/idademo695_linux.tgz
-RUN cd opt && tar xvf idademo695_linux.tgz && chown -R root.root ./idademo695 && rm -f idademo695_linux.tgz
+# IDA Pro Demo - check license
+#RUN wget -q -O "/opt/idafree70_linux.run" https://out7.hex-rays.com/files/idafree70_linux.run && chmod u+x /opt/idafree70_linux.run
 
 # Android emulator
-RUN wget -q -O "/opt/tools-linux.zip" https://dl.google.com/android/repository/tools_$ANDROID_SDK_VERSION-linux.zip
+RUN wget -q -O "/opt/tools-linux.zip" https://dl.google.com/android/repository/sdk-tools-linux-$ANDROID_SDK_VERSION.zip
 RUN unzip /opt/tools-linux.zip -d /opt/android-sdk-linux
 RUN rm -f /opt/tools-linux.zip
 ENV ANDROID_HOME /opt/android-sdk-linux
 ENV PATH $PATH:/opt:$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools
-RUN echo y | android update sdk --filter tools --no-ui --force -a
-RUN echo y | android update sdk --filter platform-tools --no-ui --force -a
-RUN echo y | android update sdk --filter build-tools-$ANDROID_BUILD_VERSION --no-ui --force -a
-RUN echo y | android update adb
-RUN echo y | android update sdk --filter android-22 --no-ui --force -a
-RUN echo y | android update sdk --filter sys-img-armeabi-v7a-android-22 --no-ui --force -a
-RUN echo n | android create avd --force --name "Arm51" --target android-22 --abi "default/armeabi-v7a"
-RUN echo y | android update sdk --filter android-19 --no-ui --force -a
-RUN echo y | android update sdk --filter sys-img-armeabi-v7a-android-19 --no-ui --force -a
-RUN echo n | android create avd --force --name "Android442" --target android-19 --abi "default/armeabi-v7a"
-RUN echo y | android update sdk --filter android-24 --no-ui --force -a
-RUN echo y | android update sdk --filter sys-img-armeabi-v7a-android-24 --no-ui --force -a
-RUN echo n | android create avd --force --name "Android70" --target android-24 --abi "default/armeabi-v7a"
+RUN echo y | /opt/android-sdk-linux/tools/bin/sdkmanager --update
+RUN /opt/android-sdk-linux/tools/bin/sdkmanager "tools" "platform-tools" "platforms;android-22" "platforms;android-26" "build-tools;26.0.1" "emulator" "system-images;android-22;default;armeabi-v7a" "system-images;android-23;google_apis;armeabi-v7a" "system-images;android-24;default;armeabi-v7a" "system-images;android-24;default;x86_64" "ndk-bundle" 
+
+RUN echo n | /opt/android-sdk-linux/tools/bin/avdmanager create avd -n "Android60" -k "system-images;android-23;google_apis;armeabi-v7a"
+RUN echo n | /opt/android-sdk-linux/tools/bin/avdmanager create avd -n "Android70_x86" -k "system-images;android-24;default;x86_64"
+RUN echo n | /opt/android-sdk-linux/tools/bin/avdmanager create avd -n "Android70" -k "system-images;android-24;default;armeabi-v7a"
+RUN echo n | /opt/android-sdk-linux/tools/bin/avdmanager create avd -n "Android51" -k "system-images;android-22;default;armeabi-v7a"
+
 RUN mkdir ${ANDROID_HOME}/tools/keymaps && touch ${ANDROID_HOME}/tools/keymaps/en-us
 ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:${ANDROID_HOME}/tools/lib64/qt/lib:${ANDROID_HOME}/tools/lib64
-
-
-
-# Android NDK
-RUN wget -q -O "/opt/android-ndk-${ANDROID_NDK_VERSION}-linux-x86-64.zip" https://dl.google.com/android/repository/android-ndk-${ANDROID_NDK_VERSION}-linux-x86_64.zip && cd /opt && unzip /opt/android-ndk-${ANDROID_NDK_VERSION}-linux-x86-64.zip && rm -f /opt/android-ndk-${ANDROID_NDK_VERSION}-linux-x86-64.zip
-ENV NDK "/opt/android-ndk-${ANDROID_NDK_VERSION}"
-
-
 
 # Cleaning up and final setup -------------------------
 RUN apt-get autoremove -yqq
@@ -235,8 +226,9 @@ RUN apt-get clean
 
 RUN echo "export PATH=$PATH" >> /etc/profile
 RUN echo "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH" >> /etc/profile
-RUN echo "alias emulator='/opt/android-sdk-linux/tools/emulator64-arm -avd Arm51 -no-audio -partition-size 512 -no-boot-anim'" >> /root/.bashrc
-RUN echo "alias emulator7='/opt/android-sdk-linux/tools/emulator64-arm -avd Android70 -no-boot-anim'" >> /root/.bashrc
+RUN echo "alias emulator='/opt/android-sdk-linux/tools/emulator -avd Android51 -no-audio -partition-size 512 -no-boot-anim'" >> /root/.bashrc
+RUN echo "alias emulator7='/opt/android-sdk-linux/tools/emulator -avd Android70 -no-audio -no-boot-anim'" >> /root/.bashrc
+RUN echo "alias emulator7x86='/opt/android-sdk-linux/tools/emulator -avd Android70_x86 -no-audio -no-boot-anim'" >> /root/.bashrc
 RUN echo "export LC_ALL=C" >> /root/.bashrc
 
 RUN mkdir -p /workshop
