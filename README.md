@@ -7,11 +7,33 @@ This is a _docker_ image for reverse engineering of _Android_ applications.
 
 Please use responsibly.
 
+# Quick start
+
+Don't want to read this page through and have only basic requirements?
+
+```bash
+$ docker pull cryptax/android-re
+$ docker run -d --privileged -p 5900:5900 -p 5022:22 --name androidre cryptax/android-re
+$ xhost +
+$ ssh -p 5022 -X root@127.0.0.1
+```
+
+Login with password `rootpass`.
+
+Then:
+
+```bash
+$ emulator7x86 &
+```
+
+If that's not working the way you expect, read the rest ;P
+
+
 # Description
 
 This container contains many tools to reverse engineer Android applications.
 
-- Android emulators 5.1 and 7.0 and 7.0 for x86
+- Android emulators 5.1, 6.0 and 7.0 (ARM and x86)
 - androguard
 - apkid
 - apktool
