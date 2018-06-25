@@ -1,0 +1,9 @@
+version: '3'
+services:
+   android-re:
+     build:
+       context: .
+     ports:
+       - "5022:22"
+       - "5900:5900"
+     container_name: android-re

@@ -2,10 +2,7 @@
 
 This is a _docker_ image for reverse engineering of _Android_ applications.
 
-
-# Disclaimer
-
-Please use responsibly.
+**Disclaimer**: Please use responsibly.
 
 # Quick start
 
@@ -57,7 +54,7 @@ Those are open source tools, or free demos.
 
 [![](https://images.microbadger.com/badges/image/cryptax/android-re.svg)](https://microbadger.com/images/cryptax/android-re "Get your own image badge on microbadger.com")
 
-# How to use this
+# How to use this image
 
 There are three steps:
 
@@ -77,6 +74,11 @@ $ docker pull cryptax/android-re:latest
 Unless you want to build your own image - then see below the _Customization_ section.
 
 ## Running the container
+
+There are a few options:
+
+- running the container locally: you just want to run on your own machine and don't want to bother about SSH or VNC.
+- running to connect via SSH or VNC: the container will be available as a standalone host you can log into via SSH, or VNC.
 
 ### Running the container locally
 
@@ -106,8 +108,9 @@ where:
 - SSH_PORT is the port number the container will listen on for SSH connections. As the standard SSH port (22) is often already used, you may want to use another port here.
 - VNC_PORT is the port number the container will listen on for VNC connections.
 
-For other options in `docker run`, [please go to docker's documentation](https://docs.docker.com/engine/reference/run/). For example, you may want to mount a given directory of your network and make it accessible to the container using `-v` option.
+**Note**: if you have `docker-compose`, you can use (or tune) `docker-compose up -d` to launch the container.
 
+For other options in `docker run`, [please go to docker's documentation](https://docs.docker.com/engine/reference/run/). For example, you may want to mount a given directory of your network and make it accessible to the container using `-v` option.
 
 Typically, I run (but you may have to modify to suit your own needs):
 ```
@@ -116,7 +119,8 @@ $ docker run -d --name androidre -p 5022:22 -p 5900:5900 cryptax/android-re
 
 Do not forget to add `--privileged` if you are using the x86 emulator.
 
-## Connecting
+
+## Connecting via SSH or VNC
 
 Once a container is running, it's basically like a virtual Linux host. You need to connect to it.
 You are expected to log in using either **ssh** or **vncviewer**.
@@ -182,28 +186,6 @@ The "normal" Android emulators emulate ARM architecture. If your host uses Intel
 - Have an Intel x86 processor on your host which supports virtualization (e.g Intel VT)
 - Launch the container with the `--privileged` option.
 
-### Troubleshooting
-
-#### Could not initialize OpenglES
-
-If your emulator does not launch and fails with such errors:
-
-```
-getGLES2ExtensionString: Could not create GLES 2.x Pbuffer!
-Failed to obtain GLES 2.x extensions string!
-Could not initialize emulated framebuffer
-emulator: ERROR: Could not initialize OpenglES emulation, use '-gpu off' to disable it.
-```
-
-add `-gpu off` to the emulator alias:
-
-`/opt/android-sdk-linux/tools/emulator -avd Android70 -no-audio -no-boot-anim -gpu off`
-
-#### Process system isn't responding
-
-The Android emulator tells you a given process is not responding and asks if you should wait or close.
-Usually, you can just *close* the process...
-
 
 # Customization
 
@@ -233,5 +215,5 @@ This image **does not provide any Android sample**.
 
 # Digest
 
-sha256:c6474e877b07b19184055ef4b2198449df0a3e771ac2a80adb1055e50c04477f
+sha256:a4632251a185c9686efd19b45bf96976f9067aa2bdd048a5ad204cd646007959
 

@@ -1,15 +1,15 @@
 FROM ubuntu:16.04
 
-MAINTAINER Axelle Apvrille 
-ENV REFRESHED_AT 2018-04-12
+MAINTAINER Axelle Apvrille
+ENV REFRESHED_AT 2018-06-25
 
 ARG DEBIAN_FRONTEND=noninteractive
-ENV SMALI_VERSION "2.2.2"
-ENV APKTOOL_VERSION "2.3.1"
+ENV SMALI_VERSION "2.2.4"
+ENV APKTOOL_VERSION "2.3.3"
 ENV JD_VERSION "1.4.0"
 ENV PROCYON_VERSION "0.5.30"
-ENV ANDROID_SDK_VERSION "3859397"
-ENV FRIDA_VERSION "10.7.7"
+ENV ANDROID_SDK_VERSION "4333796"
+ENV FRIDA_VERSION "11.0.12"
 ENV SSH_PASSWORD "rootpass"
 ENV VNC_PASSWORD "rootpass"
 ENV USER root
@@ -53,31 +53,36 @@ RUN apt-get update && \
     libvirt-bin \
     ubuntu-vm-builder \
     bridge-utils \
-    libc6-i686:i386 \ 
-    libexpat1:i386 \
-    libffi6:i386 \
-    libfontconfig1:i386 \
-    libfreetype6:i386 \		
-    libgcc1:i386 \
-    libglib2.0-0:i386 \ 
-    libice6:i386 \
-    libpcre3:i386 \	
-    libpng12-0:i386 \
-    libsm6:i386 \
-    libstdc++6:i386 \ 
-    libuuid1:i386 \
-    libx11-6:i386 \
-    libxau6:i386 \ 
-    libxcb1:i386 \
-    libxdmcp6:i386 \
-    libxext6:i386 \
-    libxrender1:i386 \
-    zlib1g:i386 \
-    libx11-xcb1:i386 \
-    libdbus-1-3:i386 \
-    libxi6:i386 \
-    libsm6:i386 \
-    libcurl3:i386 \
+    libc6:i386 \
+    libncurses5:i386 \
+    libstdc++6:i386 \
+    lib32z1 \
+    libbz2-1.0:i386 \
+#    libc6-i686:i386 \ 
+    # libexpat1:i386 \
+    # libffi6:i386 \
+    # libfontconfig1:i386 \
+    # libfreetype6:i386 \		
+    # libgcc1:i386 \
+    # libglib2.0-0:i386 \ 
+    # libice6:i386 \
+    # libpcre3:i386 \	
+    # libpng12-0:i386 \
+    # libsm6:i386 \
+    # libstdc++6:i386 \ 
+    # libuuid1:i386 \
+    # libx11-6:i386 \
+    # libxau6:i386 \ 
+    # libxcb1:i386 \
+    # libxdmcp6:i386 \
+    # libxext6:i386 \
+    # libxrender1:i386 \
+    # zlib1g:i386 \
+    # libx11-xcb1:i386 \
+    # libdbus-1-3:i386 \
+    # libxi6:i386 \
+    # libsm6:i386 \
+    # libcurl3:i386 \
     xvfb \
     x11vnc \
     xfce4 \
@@ -200,8 +205,8 @@ RUN wget -q -O "/opt/cfr_0_118.jar" http://www.benf.org/other/cfr/cfr_0_118.jar
 RUN cd /opt && git clone https://github.com/Storyyeller/enjarify && ln -s /opt/enjarify/enjarify.sh /usr/bin/enjarify
 
 
-# IDA Pro Demo - check license
-#RUN wget -q -O "/opt/idafree70_linux.run" https://out7.hex-rays.com/files/idafree70_linux.run && chmod u+x /opt/idafree70_linux.run
+# IDA Pro Demo
+RUN wget -q -O "/opt/idafree70_linux.run" https://out7.hex-rays.com/files/idafree70_linux.run && chmod u+x /opt/idafree70_linux.run
 
 # Android emulator
 RUN wget -q -O "/opt/tools-linux.zip" https://dl.google.com/android/repository/sdk-tools-linux-$ANDROID_SDK_VERSION.zip
@@ -210,15 +215,24 @@ RUN rm -f /opt/tools-linux.zip
 ENV ANDROID_HOME /opt/android-sdk-linux
 ENV PATH $PATH:/opt:$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools
 RUN echo y | /opt/android-sdk-linux/tools/bin/sdkmanager --update
-RUN /opt/android-sdk-linux/tools/bin/sdkmanager "tools" "platform-tools" "platforms;android-22" "platforms;android-26" "build-tools;26.0.1" "emulator" "system-images;android-22;default;armeabi-v7a" "system-images;android-23;google_apis;armeabi-v7a" "system-images;android-24;default;armeabi-v7a" "system-images;android-24;default;x86_64" "ndk-bundle" 
+RUN yes | /opt/android-sdk-linux/tools/bin/sdkmanager     "emulator" "tools" "platform-tools" \
+    "build-tools;28.0.0-rc2" \
+    "ndk-bundle" \
+    "platforms;android-22" \
+    "platforms;android-23" \
+    "platforms;android-24" \
+    "system-images;android-22;default;armeabi-v7a" \
+    "system-images;android-23;google_apis;armeabi-v7a" \
+    "system-images;android-24;google_apis;armeabi-v7a" \
+    "system-images;android-24;google_apis;x86_64" 
 
-RUN echo n | /opt/android-sdk-linux/tools/bin/avdmanager create avd -n "Android60" -k "system-images;android-23;google_apis;armeabi-v7a"
-RUN echo n | /opt/android-sdk-linux/tools/bin/avdmanager create avd -n "Android70_x86" -k "system-images;android-24;default;x86_64"
-RUN echo n | /opt/android-sdk-linux/tools/bin/avdmanager create avd -n "Android70" -k "system-images;android-24;default;armeabi-v7a"
-RUN echo n | /opt/android-sdk-linux/tools/bin/avdmanager create avd -n "Android51" -k "system-images;android-22;default;armeabi-v7a"
+RUN echo "no" | /opt/android-sdk-linux/tools/bin/avdmanager create avd -n "Android51" -k "system-images;android-22;default;armeabi-v7a"
+RUN echo "no" | /opt/android-sdk-linux/tools/bin/avdmanager create avd -n "Android60" -k "system-images;android-23;google_apis;armeabi-v7a"
+RUN echo "no" | /opt/android-sdk-linux/tools/bin/avdmanager create avd -n "Android70" -k "system-images;android-24;google_apis;armeabi-v7a"
+RUN echo "no" | /opt/android-sdk-linux/tools/bin/avdmanager create avd -n "Android70_x86" -k "system-images;android-24;google_apis;x86_64"
 
-RUN mkdir ${ANDROID_HOME}/tools/keymaps && touch ${ANDROID_HOME}/tools/keymaps/en-us
-ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:${ANDROID_HOME}/tools/lib64/qt/lib:${ANDROID_HOME}/tools/lib64
+#RUN mkdir ${ANDROID_HOME}/tools/keymaps && touch ${ANDROID_HOME}/tools/keymaps/en-us
+ENV LD_LIBRARY_PATH ${ANDROID_HOME}/emulator/lib64/qt/lib:${ANDROID_HOME}/emulator/lib64/gles_swiftshader/
 
 # Cleaning up and final setup -------------------------
 RUN apt-get autoremove -yqq
@@ -226,8 +240,8 @@ RUN apt-get clean
 
 RUN echo "export PATH=$PATH" >> /etc/profile
 RUN echo "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH" >> /etc/profile
-RUN echo "alias emulator='/opt/android-sdk-linux/tools/emulator -avd Android51 -no-audio -partition-size 512 -no-boot-anim'" >> /root/.bashrc
-RUN echo "alias emulator7='/opt/android-sdk-linux/tools/emulator -avd Android70 -no-audio -no-boot-anim'" >> /root/.bashrc
+RUN echo "alias emulator='/opt/android-sdk-linux/emulator/emulator64-arm -avd Android51 -no-audio -partition-size 512 -no-boot-anim'" >> /root/.bashrc
+RUN echo "alias emulator7='/opt/android-sdk-linux/emulator/emulator64-arm -avd Android70 -no-audio -no-boot-anim'" >> /root/.bashrc
 RUN echo "alias emulator7x86='/opt/android-sdk-linux/tools/emulator -avd Android70_x86 -no-audio -no-boot-anim'" >> /root/.bashrc
 RUN echo "export LC_ALL=C" >> /root/.bashrc
 
