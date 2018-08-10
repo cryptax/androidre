@@ -1,6 +1,6 @@
 # What's this?
 
-This is a _docker_ image for reverse engineering of _Android_ applications.
+This is a _docker_ image for the reverse engineering of _Android_ applications.
 
 **Disclaimer**: Please use responsibly.
 
@@ -20,7 +20,7 @@ Login with password `rootpass`.
 Then:
 
 ```bash
-$ emulator7x86 &
+$ emulator8x86 &
 ```
 
 If that's not working the way you expect, read the rest ;P
@@ -30,9 +30,8 @@ If that's not working the way you expect, read the rest ;P
 
 This container contains many tools to reverse engineer Android applications.
 
-- Android emulators 5.1, 6.0 and 7.0 (ARM and x86)
+- Android emulators 5.1 (ARM), 7.1.1 (ARM) and 8.0 (x86)
 - androguard
-- apkid
 - apktool
 - AXMLPrinter
 - baksmali / smali
@@ -163,18 +162,18 @@ Android reverse engineering tools are installed in **/opt**.
 
 | Android version | API version | Bashrc alias |
 | -------------------- | --------------- | ---------------- |
-| Android 7.0 for x86 (Nougat)    | 24 | emulator7x86 |
-| Android 7.0  (Nougat)  | 24 | emulator7 |
+| Android 8.0 for x86    | 26 | emulator8x86 |
+| Android 7.1.1  (Nougat)  | 25 | emulator7 |
 | Android 6.0 (Marshmallow) | 23 | no alias |
 | Android 5.1 (Lollipop) | 22 | emulator |
 
-So, for example, to run the Android 7.0 emulator, do:
+So, for example, to run the Android 7.1.1 emulator, do:
 ```
 $ emulator7 &
 ```
 which equivalent to:
 ```
-$ /opt/android-sdk-linux/tools/emulator -avd Android70 -no-audio -no-boot-anim &
+$ /opt/android-sdk-linux/tools/emulator -avd Android711 -no-audio -no-boot-anim &
 ```
 
 In doubt, list AVDs using `/opt/android-sdk-linux/tools/bin/avdmanager list avd`
@@ -185,7 +184,6 @@ The "normal" Android emulators emulate ARM architecture. If your host uses Intel
 
 - Have an Intel x86 processor on your host which supports virtualization (e.g Intel VT)
 - Launch the container with the `--privileged` option.
-
 
 # Customization
 
@@ -215,5 +213,5 @@ This image **does not provide any Android sample**.
 
 # Digest
 
-sha256:a4632251a185c9686efd19b45bf96976f9067aa2bdd048a5ad204cd646007959
+sha256: 972b3d2908bee6e7ba4e7d5eee835d163a07e89bda70eed397dfbb8b7b8ad61a
 

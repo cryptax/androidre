@@ -1,7 +1,7 @@
 FROM ubuntu:16.04
 
 MAINTAINER Axelle Apvrille
-ENV REFRESHED_AT 2018-06-25
+ENV REFRESHED_AT 2018-08-10
 
 ARG DEBIAN_FRONTEND=noninteractive
 ENV SMALI_VERSION "2.2.4"
@@ -9,7 +9,7 @@ ENV APKTOOL_VERSION "2.3.3"
 ENV JD_VERSION "1.4.0"
 ENV PROCYON_VERSION "0.5.30"
 ENV ANDROID_SDK_VERSION "4333796"
-ENV FRIDA_VERSION "11.0.12"
+ENV FRIDA_VERSION "12.0.8"
 ENV SSH_PASSWORD "rootpass"
 ENV VNC_PASSWORD "rootpass"
 ENV USER root
@@ -44,8 +44,8 @@ RUN apt-get update && \
     gdb-multiarch \
     eog \
     p7zip-full \
-    nodejs \
-    npm \
+    curl \
+    pkg-config \
     tree \
     firefox \
     python3 \
@@ -58,37 +58,12 @@ RUN apt-get update && \
     libstdc++6:i386 \
     lib32z1 \
     libbz2-1.0:i386 \
-#    libc6-i686:i386 \ 
-    # libexpat1:i386 \
-    # libffi6:i386 \
-    # libfontconfig1:i386 \
-    # libfreetype6:i386 \		
-    # libgcc1:i386 \
-    # libglib2.0-0:i386 \ 
-    # libice6:i386 \
-    # libpcre3:i386 \	
-    # libpng12-0:i386 \
-    # libsm6:i386 \
-    # libstdc++6:i386 \ 
-    # libuuid1:i386 \
-    # libx11-6:i386 \
-    # libxau6:i386 \ 
-    # libxcb1:i386 \
-    # libxdmcp6:i386 \
-    # libxext6:i386 \
-    # libxrender1:i386 \
-    # zlib1g:i386 \
-    # libx11-xcb1:i386 \
-    # libdbus-1-3:i386 \
-    # libxi6:i386 \
-    # libsm6:i386 \
-    # libcurl3:i386 \
     xvfb \
     x11vnc \
     xfce4 \
     xfce4-terminal \
-    supervisor \
-    && rm -rf /var/lib/apt/lists/*
+    supervisor
+RUN rm -rf /var/lib/apt/lists/*
 
 RUN pip install --upgrade pip
 
@@ -123,20 +98,21 @@ RUN echo "command=/bin/sh /root/startXvfb.sh">> /etc/supervisor/conf.d/superviso
 #RUN echo "command=/root/vnc.sh" >> /etc/supervisor/conf.d/supervisord.conf
 
 
-# For lab
-RUN npm install socket.io
+# NodeJS & NPM useful for some labs and r2frida
+RUN curl -sL https://deb.nodesource.com/setup_10.x | bash -
+RUN apt-get install -y nodejs
 
 # Android Reverse Engineering tools -------------
 RUN mkdir -p /opt
 
 # Install Smali / Baksmali
-RUN wget -q -O "/opt/smali.jar" "https://bitbucket.org/JesusFreke/smali/downloads/smali-$SMALI_VERSION.jar"
-RUN wget -q -O "/opt/baksmali.jar" "https://bitbucket.org/JesusFreke/smali/downloads/baksmali-$SMALI_VERSION.jar"
+RUN wget -q -O "/opt/smali.jar" "https://bitbucket.org/JesusFreke/smali/downloads/smali-${SMALI_VERSION}.jar"
+RUN wget -q -O "/opt/baksmali.jar" "https://bitbucket.org/JesusFreke/smali/downloads/baksmali-${SMALI_VERSION}.jar"
 
 # Apktool
 RUN mkdir -p /opt/apktool
 RUN wget -q -O "/opt/apktool/apktool" https://raw.githubusercontent.com/iBotPeaches/Apktool/master/scripts/linux/apktool
-RUN wget -q -O "/opt/apktool/apktool.jar" https://bitbucket.org/iBotPeaches/apktool/downloads/apktool_$APKTOOL_VERSION.jar
+RUN wget -q -O "/opt/apktool/apktool.jar" https://bitbucket.org/iBotPeaches/apktool/downloads/apktool_${APKTOOL_VERSION}.jar
 RUN chmod u+x /opt/apktool/apktool /opt/apktool/apktool.jar
 ENV PATH $PATH:/opt/apktool
 
@@ -149,7 +125,7 @@ RUN wget -q -O "/opt/dex2jar-2.0.zip" http://downloads.sourceforge.net/project/d
 ENV PATH $PATH:/opt/dex2jar-2.0
 
 # JD-GUI
-RUN wget -q -O "/opt/jd-gui.jar" "https://github.com/java-decompiler/jd-gui/releases/download/v$JD_VERSION/jd-gui-$JD_VERSION.jar"
+RUN wget -q -O "/opt/jd-gui.jar" "https://github.com/java-decompiler/jd-gui/releases/download/v${JD_VERSION}/jd-gui-${JD_VERSION}.jar"
 RUN cd /opt && git clone https://github.com/kwart/jd-cmd
 
 # JADX
@@ -157,16 +133,10 @@ RUN cd /opt && git clone https://github.com/skylot/jadx.git
 RUN cd /opt/jadx && ./gradlew dist
 
 # Procyon
-RUN wget -q -O "/opt/procyon-decompiler.jar" "https://bitbucket.org/mstrobel/procyon/downloads/procyon-decompiler-$PROCYON_VERSION.jar"
+RUN wget -q -O "/opt/procyon-decompiler.jar" "https://bitbucket.org/mstrobel/procyon/downloads/procyon-decompiler-${PROCYON_VERSION}.jar"
 
 # Krakatau
 RUN cd /opt && git clone https://github.com/Storyyeller/Krakatau
-
-# APKiD
-RUN cd /opt && git clone https://github.com/rednaga/APKiD
-RUN cd /opt/APKiD && git clone https://github.com/rednaga/yara-python
-RUN cd /opt/APKiD/yara-python && python setup.py install
-RUN cd /opt/APKiD && pip install apkid
 
 # AXMLPrinter
 RUN cd /opt && git clone https://github.com/rednaga/axmlprinter
@@ -186,11 +156,9 @@ RUN cd /opt && git clone https://github.com/radare/radare2
 RUN cd /opt/radare2 && sys/install.sh && make symstall && r2pm init && pip install r2pipe
 
 # Frida
-RUN pip install frida 
+RUN pip install frida && pip install --upgrade frida
 RUN cd /opt && wget -q -O "/opt/frida-server.xz" https://github.com/frida/frida/releases/download/${FRIDA_VERSION}/frida-server-${FRIDA_VERSION}-android-arm.xz && unxz /opt/frida-server.xz
-
-# Simplify
-#RUN cd /opt && git clone --recursive https://github.com/CalebFenton/simplify.git && cd simplify && ./gradlew fatjar && cd /opt && ln -s /opt/simplify/simplify/build/libs/simplify.jar simplify.jar
+RUN r2pm -i r2frida
 
 # Other tools with simple install
 RUN wget -q -O "/opt/oat2dex.py" https://github.com/jakev/oat2dex-python/blob/master/oat2dex.py
@@ -204,12 +172,8 @@ RUN wget -q -O "/opt/androarsc.py" https://raw.githubusercontent.com/androguard/
 RUN wget -q -O "/opt/cfr_0_118.jar" http://www.benf.org/other/cfr/cfr_0_118.jar
 RUN cd /opt && git clone https://github.com/Storyyeller/enjarify && ln -s /opt/enjarify/enjarify.sh /usr/bin/enjarify
 
-
-# IDA Pro Demo
-RUN wget -q -O "/opt/idafree70_linux.run" https://out7.hex-rays.com/files/idafree70_linux.run && chmod u+x /opt/idafree70_linux.run
-
 # Android emulator
-RUN wget -q -O "/opt/tools-linux.zip" https://dl.google.com/android/repository/sdk-tools-linux-$ANDROID_SDK_VERSION.zip
+RUN wget -q -O "/opt/tools-linux.zip" https://dl.google.com/android/repository/sdk-tools-linux-${ANDROID_SDK_VERSION}.zip
 RUN unzip /opt/tools-linux.zip -d /opt/android-sdk-linux
 RUN rm -f /opt/tools-linux.zip
 ENV ANDROID_HOME /opt/android-sdk-linux
@@ -220,16 +184,17 @@ RUN yes | /opt/android-sdk-linux/tools/bin/sdkmanager     "emulator" "tools" "pl
     "ndk-bundle" \
     "platforms;android-22" \
     "platforms;android-23" \
-    "platforms;android-24" \
+    "platforms;android-25" \
+    "platforms;android-26" \
     "system-images;android-22;default;armeabi-v7a" \
     "system-images;android-23;google_apis;armeabi-v7a" \
-    "system-images;android-24;google_apis;armeabi-v7a" \
-    "system-images;android-24;google_apis;x86_64" 
+    "system-images;android-25;google_apis;armeabi-v7a" \
+    "system-images;android-26;google_apis;x86_64" 
 
 RUN echo "no" | /opt/android-sdk-linux/tools/bin/avdmanager create avd -n "Android51" -k "system-images;android-22;default;armeabi-v7a"
 RUN echo "no" | /opt/android-sdk-linux/tools/bin/avdmanager create avd -n "Android60" -k "system-images;android-23;google_apis;armeabi-v7a"
-RUN echo "no" | /opt/android-sdk-linux/tools/bin/avdmanager create avd -n "Android70" -k "system-images;android-24;google_apis;armeabi-v7a"
-RUN echo "no" | /opt/android-sdk-linux/tools/bin/avdmanager create avd -n "Android70_x86" -k "system-images;android-24;google_apis;x86_64"
+RUN echo "no" | /opt/android-sdk-linux/tools/bin/avdmanager create avd -n "Android711" -k "system-images;android-25;google_apis;armeabi-v7a"
+RUN echo "no" | /opt/android-sdk-linux/tools/bin/avdmanager create avd -n "Android80_x86" -k "system-images;android-26;google_apis;x86_64"
 
 #RUN mkdir ${ANDROID_HOME}/tools/keymaps && touch ${ANDROID_HOME}/tools/keymaps/en-us
 ENV LD_LIBRARY_PATH ${ANDROID_HOME}/emulator/lib64/qt/lib:${ANDROID_HOME}/emulator/lib64/gles_swiftshader/
@@ -241,8 +206,8 @@ RUN apt-get clean
 RUN echo "export PATH=$PATH" >> /etc/profile
 RUN echo "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH" >> /etc/profile
 RUN echo "alias emulator='/opt/android-sdk-linux/emulator/emulator64-arm -avd Android51 -no-audio -partition-size 512 -no-boot-anim'" >> /root/.bashrc
-RUN echo "alias emulator7='/opt/android-sdk-linux/emulator/emulator64-arm -avd Android70 -no-audio -no-boot-anim'" >> /root/.bashrc
-RUN echo "alias emulator7x86='/opt/android-sdk-linux/tools/emulator -avd Android70_x86 -no-audio -no-boot-anim'" >> /root/.bashrc
+RUN echo "alias emulator7='/opt/android-sdk-linux/emulator/emulator64-arm -avd Android711 -no-audio -no-boot-anim'" >> /root/.bashrc
+RUN echo "alias emulator8x86='/opt/android-sdk-linux/tools/emulator -avd Android80_x86 -no-audio -no-boot-anim'" >> /root/.bashrc
 RUN echo "export LC_ALL=C" >> /root/.bashrc
 
 RUN mkdir -p /workshop

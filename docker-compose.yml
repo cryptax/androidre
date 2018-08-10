@@ -7,3 +7,4 @@ services:
        - "5022:22"
        - "5900:5900"
      container_name: android-re
+     privileged: true
