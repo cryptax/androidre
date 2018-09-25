@@ -213,5 +213,5 @@ This image **does not provide any Android sample**.
 
 # Digest
 
-sha256: 972b3d2908bee6e7ba4e7d5eee835d163a07e89bda70eed397dfbb8b7b8ad61a
+sha256: 0430822e27e6e5bff791c183aecc9e94194262f7b3033f9ecb1738644d37990c
 

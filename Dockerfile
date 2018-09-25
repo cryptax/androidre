@@ -1,7 +1,7 @@
 FROM ubuntu:16.04
 
-MAINTAINER Axelle Apvrille
-ENV REFRESHED_AT 2018-08-10
+MAINTAINER Axelle Apvrille <aapvrille@fortinet.com>
+ENV REFRESHED_AT 2018-09-24
 
 ARG DEBIAN_FRONTEND=noninteractive
 ENV SMALI_VERSION "2.2.4"
@@ -9,7 +9,7 @@ ENV APKTOOL_VERSION "2.3.3"
 ENV JD_VERSION "1.4.0"
 ENV PROCYON_VERSION "0.5.30"
 ENV ANDROID_SDK_VERSION "4333796"
-ENV FRIDA_VERSION "12.0.8"
+ENV FRIDA_VERSION "12.2.5"
 ENV SSH_PASSWORD "rootpass"
 ENV VNC_PASSWORD "rootpass"
 ENV USER root
@@ -62,8 +62,8 @@ RUN apt-get update && \
     x11vnc \
     xfce4 \
     xfce4-terminal \
-    supervisor
-RUN rm -rf /var/lib/apt/lists/*
+    supervisor \
+    && rm -rf /var/lib/apt/lists/*
 
 RUN pip install --upgrade pip
 
@@ -106,13 +106,13 @@ RUN apt-get install -y nodejs
 RUN mkdir -p /opt
 
 # Install Smali / Baksmali
-RUN wget -q -O "/opt/smali.jar" "https://bitbucket.org/JesusFreke/smali/downloads/smali-${SMALI_VERSION}.jar"
-RUN wget -q -O "/opt/baksmali.jar" "https://bitbucket.org/JesusFreke/smali/downloads/baksmali-${SMALI_VERSION}.jar"
+RUN wget -q -O "/opt/smali.jar" "https://bitbucket.org/JesusFreke/smali/downloads/smali-$SMALI_VERSION.jar"
+RUN wget -q -O "/opt/baksmali.jar" "https://bitbucket.org/JesusFreke/smali/downloads/baksmali-$SMALI_VERSION.jar"
 
 # Apktool
 RUN mkdir -p /opt/apktool
 RUN wget -q -O "/opt/apktool/apktool" https://raw.githubusercontent.com/iBotPeaches/Apktool/master/scripts/linux/apktool
-RUN wget -q -O "/opt/apktool/apktool.jar" https://bitbucket.org/iBotPeaches/apktool/downloads/apktool_${APKTOOL_VERSION}.jar
+RUN wget -q -O "/opt/apktool/apktool.jar" https://bitbucket.org/iBotPeaches/apktool/downloads/apktool_$APKTOOL_VERSION.jar
 RUN chmod u+x /opt/apktool/apktool /opt/apktool/apktool.jar
 ENV PATH $PATH:/opt/apktool
 
@@ -125,7 +125,7 @@ RUN wget -q -O "/opt/dex2jar-2.0.zip" http://downloads.sourceforge.net/project/d
 ENV PATH $PATH:/opt/dex2jar-2.0
 
 # JD-GUI
-RUN wget -q -O "/opt/jd-gui.jar" "https://github.com/java-decompiler/jd-gui/releases/download/v${JD_VERSION}/jd-gui-${JD_VERSION}.jar"
+RUN wget -q -O "/opt/jd-gui.jar" "https://github.com/java-decompiler/jd-gui/releases/download/v$JD_VERSION/jd-gui-$JD_VERSION.jar"
 RUN cd /opt && git clone https://github.com/kwart/jd-cmd
 
 # JADX
@@ -133,10 +133,16 @@ RUN cd /opt && git clone https://github.com/skylot/jadx.git
 RUN cd /opt/jadx && ./gradlew dist
 
 # Procyon
-RUN wget -q -O "/opt/procyon-decompiler.jar" "https://bitbucket.org/mstrobel/procyon/downloads/procyon-decompiler-${PROCYON_VERSION}.jar"
+RUN wget -q -O "/opt/procyon-decompiler.jar" "https://bitbucket.org/mstrobel/procyon/downloads/procyon-decompiler-$PROCYON_VERSION.jar"
 
 # Krakatau
 RUN cd /opt && git clone https://github.com/Storyyeller/Krakatau
+
+# APKiD
+#RUN cd /opt && git clone https://github.com/rednaga/APKiD
+#RUN cd /opt/APKiD && git clone https://github.com/rednaga/yara-python
+#RUN cd /opt/APKiD/yara-python && python setup.py install
+#RUN cd /opt/APKiD && pip install apkid
 
 # AXMLPrinter
 RUN cd /opt && git clone https://github.com/rednaga/axmlprinter
@@ -156,9 +162,16 @@ RUN cd /opt && git clone https://github.com/radare/radare2
 RUN cd /opt/radare2 && sys/install.sh && make symstall && r2pm init && pip install r2pipe
 
 # Frida
-RUN pip install frida && pip install --upgrade frida
+RUN pip install frida && pip install --upgrade frida && pip install frida-tools
 RUN cd /opt && wget -q -O "/opt/frida-server.xz" https://github.com/frida/frida/releases/download/${FRIDA_VERSION}/frida-server-${FRIDA_VERSION}-android-arm.xz && unxz /opt/frida-server.xz
-RUN r2pm -i r2frida
+#RUN r2pm -i r2frida
+RUN echo "#!/bin/bash" >> /opt/install-frida-server.sh
+RUN echo "adb push /opt/frida-server /data/local/tmp/"  >> /opt/install-frida-server.sh
+RUN echo "adb shell \"chmod 755 /data/local/tmp/frida-server\"" >> /opt/install-frida-server.sh
+RUN chmod u+x /opt/install-frida-server.sh
+
+# Simplify
+#RUN cd /opt && git clone --recursive https://github.com/CalebFenton/simplify.git && cd simplify && ./gradlew fatjar && cd /opt && ln -s /opt/simplify/simplify/build/libs/simplify.jar simplify.jar
 
 # Other tools with simple install
 RUN wget -q -O "/opt/oat2dex.py" https://github.com/jakev/oat2dex-python/blob/master/oat2dex.py
@@ -168,12 +181,18 @@ RUN wget -q -O "/opt/extract.sh" https://gist.githubusercontent.com/PaulSec/3924
     && chmod +x /opt/extract.sh
 RUN mkdir -p /opt/jebPlugins && wget -q -O "/opt/jebPlugins/DeCluster.java" https://raw.githubusercontent.com/CunningLogic/myJEBPlugins/master/DeCluster.java
 RUN wget -q -O "/opt/ClassyShark.jar" https://github.com/google/android-classyshark/releases/download/6.7/ClassyShark.jar
-RUN wget -q -O "/opt/androarsc.py" https://raw.githubusercontent.com/androguard/androguard/master/androarsc.py
+#RUN wget -q -O "/opt/androarsc.py" https://raw.githubusercontent.com/androguard/androguard/master/androarsc.py
 RUN wget -q -O "/opt/cfr_0_118.jar" http://www.benf.org/other/cfr/cfr_0_118.jar
 RUN cd /opt && git clone https://github.com/Storyyeller/enjarify && ln -s /opt/enjarify/enjarify.sh /usr/bin/enjarify
+RUN cd /opt && wget -q -O "/opt/parse_apk.py" https://raw.githubusercontent.com/cryptax/dextools/master/parseapk/parse_apk.py && wget -q -O "/opt/dexview.py" https://raw.githubusercontent.com/cryptax/dextools/master/dexview/dexview.py
+
+
+
+# IDA Pro Demo
+RUN wget -q -O "/opt/idafree70_linux.run" https://out7.hex-rays.com/files/idafree70_linux.run && chmod u+x /opt/idafree70_linux.run
 
 # Android emulator
-RUN wget -q -O "/opt/tools-linux.zip" https://dl.google.com/android/repository/sdk-tools-linux-${ANDROID_SDK_VERSION}.zip
+RUN wget -q -O "/opt/tools-linux.zip" https://dl.google.com/android/repository/sdk-tools-linux-$ANDROID_SDK_VERSION.zip
 RUN unzip /opt/tools-linux.zip -d /opt/android-sdk-linux
 RUN rm -f /opt/tools-linux.zip
 ENV ANDROID_HOME /opt/android-sdk-linux
