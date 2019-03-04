@@ -1,15 +1,15 @@
 FROM ubuntu:16.04
 
-MAINTAINER Axelle Apvrille <aapvrille@fortinet.com>
-ENV REFRESHED_AT 2018-09-24
+MAINTAINER Axelle Apvrille 
+ENV REFRESHED_AT 2019-03-04
 
 ARG DEBIAN_FRONTEND=noninteractive
-ENV SMALI_VERSION "2.2.4"
-ENV APKTOOL_VERSION "2.3.3"
+ENV SMALI_VERSION "2.2.6"
+ENV APKTOOL_VERSION "2.4.0"
 ENV JD_VERSION "1.4.0"
 ENV PROCYON_VERSION "0.5.30"
 ENV ANDROID_SDK_VERSION "4333796"
-ENV FRIDA_VERSION "12.2.5"
+ENV FRIDA_VERSION "12.4.0"
 ENV SSH_PASSWORD "rootpass"
 ENV VNC_PASSWORD "rootpass"
 ENV USER root
@@ -198,22 +198,22 @@ RUN rm -f /opt/tools-linux.zip
 ENV ANDROID_HOME /opt/android-sdk-linux
 ENV PATH $PATH:/opt:$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools
 RUN echo y | /opt/android-sdk-linux/tools/bin/sdkmanager --update
-RUN yes | /opt/android-sdk-linux/tools/bin/sdkmanager     "emulator" "tools" "platform-tools" \
-    "build-tools;28.0.0-rc2" \
+RUN echo "yes" | /opt/android-sdk-linux/tools/bin/sdkmanager "emulator" "tools" "platform-tools" \
+    "build-tools;28.0.3" \
     "ndk-bundle" \
     "platforms;android-22" \
     "platforms;android-23" \
     "platforms;android-25" \
-    "platforms;android-26" \
+    "platforms;android-28" \
     "system-images;android-22;default;armeabi-v7a" \
     "system-images;android-23;google_apis;armeabi-v7a" \
     "system-images;android-25;google_apis;armeabi-v7a" \
-    "system-images;android-26;google_apis;x86_64" 
+    "system-images;android-28;google_apis_playstore;x86_64" 
 
 RUN echo "no" | /opt/android-sdk-linux/tools/bin/avdmanager create avd -n "Android51" -k "system-images;android-22;default;armeabi-v7a"
 RUN echo "no" | /opt/android-sdk-linux/tools/bin/avdmanager create avd -n "Android60" -k "system-images;android-23;google_apis;armeabi-v7a"
 RUN echo "no" | /opt/android-sdk-linux/tools/bin/avdmanager create avd -n "Android711" -k "system-images;android-25;google_apis;armeabi-v7a"
-RUN echo "no" | /opt/android-sdk-linux/tools/bin/avdmanager create avd -n "Android80_x86" -k "system-images;android-26;google_apis;x86_64"
+RUN echo "no" | /opt/android-sdk-linux/tools/bin/avdmanager create avd -n "Android9_x86_64" -k "system-images;android-28;google_apis_playstore;x86_64"
 
 #RUN mkdir ${ANDROID_HOME}/tools/keymaps && touch ${ANDROID_HOME}/tools/keymaps/en-us
 ENV LD_LIBRARY_PATH ${ANDROID_HOME}/emulator/lib64/qt/lib:${ANDROID_HOME}/emulator/lib64/gles_swiftshader/
@@ -226,7 +226,7 @@ RUN echo "export PATH=$PATH" >> /etc/profile
 RUN echo "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH" >> /etc/profile
 RUN echo "alias emulator='/opt/android-sdk-linux/emulator/emulator64-arm -avd Android51 -no-audio -partition-size 512 -no-boot-anim'" >> /root/.bashrc
 RUN echo "alias emulator7='/opt/android-sdk-linux/emulator/emulator64-arm -avd Android711 -no-audio -no-boot-anim'" >> /root/.bashrc
-RUN echo "alias emulator8x86='/opt/android-sdk-linux/tools/emulator -avd Android80_x86 -no-audio -no-boot-anim'" >> /root/.bashrc
+RUN echo "alias emulator9='/opt/android-sdk-linux/tools/emulator -avd Android9_x86_64 -no-audio -no-boot-anim'" >> /root/.bashrc
 RUN echo "export LC_ALL=C" >> /root/.bashrc
 
 RUN mkdir -p /workshop
