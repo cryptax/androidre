@@ -20,7 +20,7 @@ Login with password `rootpass`.
 Then:
 
 ```bash
-$ emulator8x86 &
+$ emulator9 &
 ```
 
 If that's not working the way you expect, read the rest ;P
@@ -30,7 +30,7 @@ If that's not working the way you expect, read the rest ;P
 
 This container contains many tools to reverse engineer Android applications.
 
-- Android emulators 5.1 (ARM), 7.1.1 (ARM) and 8.0 (x86)
+- Android emulators 5.1 (ARM), 7.1.1 (ARM) and 9.0 (x86)
 - androguard
 - apktool
 - AXMLPrinter
@@ -162,7 +162,7 @@ Android reverse engineering tools are installed in **/opt**.
 
 | Android version | API version | Bashrc alias |
 | -------------------- | --------------- | ---------------- |
-| Android 8.0 for x86    | 26 | emulator8x86 |
+| Android 9.0 for x86_64    | 28 | emulator9 |
 | Android 7.1.1  (Nougat)  | 25 | emulator7 |
 | Android 6.0 (Marshmallow) | 23 | no alias |
 | Android 5.1 (Lollipop) | 22 | emulator |
@@ -178,11 +178,11 @@ $ /opt/android-sdk-linux/tools/emulator -avd Android711 -no-audio -no-boot-anim 
 
 In doubt, list AVDs using `/opt/android-sdk-linux/tools/bin/avdmanager list avd`
 
-### Android x86 emulator
+### Android x86_64 emulator
 
 The "normal" Android emulators emulate ARM architecture. If your host uses Intel x86 and supports hardware virtualization instructions, you can use the Android emulator for x86, which will be **much faster**. The Dockerfile installs the necessary packages, yet, for this option to work, you must:
 
-- Have an Intel x86 processor on your host which supports virtualization (e.g Intel VT)
+- Have an Intel x86-64 processor on your host which supports virtualization (e.g Intel VT)
 - Launch the container with the `--privileged` option.
 
 # Customization
@@ -213,5 +213,5 @@ This image **does not provide any Android sample**.
 
 # Digest
 
-sha256: 0430822e27e6e5bff791c183aecc9e94194262f7b3033f9ecb1738644d37990c
+sha256: 7bab7e589d363af35f590ced9483c8f7ae808a42dc6d53944310818fd89a4b09
 
