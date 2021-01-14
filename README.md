@@ -50,7 +50,7 @@ It contains:
 
 - Android SDK
 - Android emulator 5.1 ARM
-- Android 11 x86
+- Android emulator 11 x86_64
 
 See `~/.bashrc` for aliases to run those emulators.
 See `Dockerfile.emulators` if you wish to customize.
@@ -64,27 +64,29 @@ The "normal" Android emulators emulate ARM architecture. If your host uses Intel
 
 # Android tools image
 
-- androguard
-- apkfile
-- apkid
-- apktool
-- AXMLPrinter
-- baksmali / smali
-- bytecodeviewer
-- CFR
-- dex2jar
-- droidlysis
-- enjarify
-- frida
-- jadx
-- java decompiler
-- JEB demo
-- oat2dex
-- objection
-- procyon
-- quark
-- radare2
-- simplify
+- [androguard](https://github.com/androguard/androguard)
+- [apkfile](https://github.com/CalebFenton/apkfile)
+- [apkid](https://github.com/rednaga/APKiD/)
+- [apktool](https://bitbucket.org/iBotPeaches/apktool)
+- [axmlprinter](https://github.com/rednaga/axmlprinter)
+- [baksmali / smali](https://github.com/JesusFreke/smali)
+- [bytecodeviewer](https://github.com/Konloch/bytecode-viewer)
+- [CFR](http://www.benf.org/other/cfr/)
+- [dex2jar](https://github.com/pxb1988/dex2jar)
+- [droidlysis](https://github.com/cryptax/droidlysis)
+- [enjarify](https://github.com/Storyyeller/enjarify)
+- [frida](https://frida.re)
+- [jadx](https://github.com/skylot/jadx)
+- [java decompiler](https://github.com/java-decompiler/jd-gui/)
+- [JEB demo](https://www.pnfsoftware.com)
+- [oat2dex](https://github.com/jakev/oat2dex-python)
+- [objection](https://github.com/sensepost/objection)
+- [procyon](https://github.com/mstrobel/procyon)
+- [quark](https://github.com/quark-engine/quark-engine)
+- [radare2](https://radare.org)
+- [simplify](https://github.com/CalebFenton/simplify)
+- [smalisca](https://github.com/dorneanu/smalisca)
+- [uber apk signer](https://github.com/patrickfav/uber-apk-signer)
 
 Those are open source tools, or free demos. They are installed in `/opt`.
 
@@ -107,5 +109,5 @@ This image **does not provide any Android sample**.
 
 # Digest
 
-sha256: d83b23e1ec8bac41a51e2d9379b8e34dd365331e0b38bb38eafe3524d5ffce43
-sha256: d45c0e6a4f3dc23fcadd83decb1eb5d6b097364320604d12a8d6740448f1c82c
+- sha256: d83b23e1ec8bac41a51e2d9379b8e34dd365331e0b38bb38eafe3524d5ffce43
+- sha256: d45c0e6a4f3dc23fcadd83decb1eb5d6b097364320604d12a8d6740448f1c82c
