@@ -126,6 +126,8 @@ You are directly connected to the container.
 
 Note you can also share a directory with your host using `-v hostdir:containerdir`.
 
+If you try to use any graphical interface and get an error like `No protocol specified` followed by an crash (`SEGFAULT`), using this command before running the docker should fix it: `xhost +local:docker`.
+
 **IMPORTANT**: if you want to use the Android emulator x86 image, you need to set the `--privileged` option in the command line, i.e:
 
 ```
