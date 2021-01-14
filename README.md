@@ -1,6 +1,9 @@
 # What's this?
 
-This is a _docker_ image for the reverse engineering of _Android_ applications.
+This is 2  _docker_ images for the reverse engineering of _Android_ applications.
+
+1. Android emulators:  `cryptax/android-emu:2021.01`
+2. Android tools: `cryptax/android-re:2021.01`
 
 **Disclaimer**: Please use responsibly.
 
@@ -8,50 +11,84 @@ This is a _docker_ image for the reverse engineering of _Android_ applications.
 
 Don't want to read this page through and have only basic requirements?
 
+## Android emulators image
+
 ```bash
-$ docker pull cryptax/android-re
-$ docker run -d --privileged -p 5900:5900 -p 5022:22 --name androidre cryptax/android-re
+$ docker pull cryptax/android-emu
+$ docker run -d --privileged -p 5900:5900 -p 5022:22 --name androidemu cryptax/android-emu
 $ xhost +
 $ ssh -p 5022 -X root@127.0.0.1
 ```
 
-Login with password `rootpass`.
+## Android tools image
+
+```bash
+$ docker pull cryptax/android-re
+$ docker run -d --privileged -p 6900:6900 -p 6022:22 -p 6800:8000 --name android-tools cryptax/android-re
+$ xhost +
+$ ssh -p 5022 -X root@127.0.0.1
+```
+
+## Then...
+
+
+Login with password `mypass`.
 
 Then:
 
 ```bash
-$ emulator9 &
+$ emulator &
 ```
 
 If that's not working the way you expect, read the rest ;P
 
+# Android emulators image
 
-# Description
+It contains:
 
-This container contains many tools to reverse engineer Android applications.
+- Android emulator 5.1 ARM
+- Android 11 x86
 
-- Android emulators 5.1 (ARM), 7.1.1 (ARM) and 9.0 (x86)
+See `~/.bashrc` for aliases to run those emulators.
+
+
+## Android x86_64 emulator
+
+The "normal" Android emulators emulate ARM architecture. If your host uses Intel x86 and supports hardware virtualization instructions, you can use the Android emulator for x86, which will be **much faster**. The Dockerfile installs the necessary packages, yet, for this option to work, you must:
+
+- Have an Intel x86-64 processor on your host which supports virtualization (e.g Intel VT)
+- Launch the container with the `--privileged` option.
+
+
+# Android tools image
+
 - androguard
+- apkfile
+- apkid
 - apktool
 - AXMLPrinter
 - baksmali / smali
-- classyshark
+- bytecodeviewer
 - CFR
 - dex2jar
+- droidlysis
 - enjarify
 - frida
-- google play api
-- google play crawler
-- google play downloader
 - jadx
 - java decompiler
-- krakatau
+- JEB demo
+- oat2dex
+- objection
 - procyon
+- quark
 - radare2
+- simplify
 
 Those are open source tools, or free demos.
 
 [![](https://images.microbadger.com/badges/image/cryptax/android-re.svg)](https://microbadger.com/images/cryptax/android-re "Get your own image badge on microbadger.com")
+
+The tools are installed in `/opt`.
 
 # How to use this image
 
@@ -150,59 +187,12 @@ where:
 - VNC_PORT is the VNC port the container forwards. In my docker run example, it's 5900.
 
 
-## Misc info
-
-### Tools
-
-Android reverse engineering tools are installed in **/opt**.
-
-### Emulators
-
-3 different emulators are installed by default in the container. Quick aliases are available in the `~/.bashrc` to run them.
-
-| Android version | API version | Bashrc alias |
-| -------------------- | --------------- | ---------------- |
-| Android 9.0 for x86_64    | 28 | emulator9 |
-| Android 7.1.1  (Nougat)  | 25 | emulator7 |
-| Android 6.0 (Marshmallow) | 23 | no alias |
-| Android 5.1 (Lollipop) | 22 | emulator |
-
-So, for example, to run the Android 7.1.1 emulator, do:
-```
-$ emulator7 &
-```
-which equivalent to:
-```
-$ /opt/android-sdk-linux/tools/emulator -avd Android711 -no-audio -no-boot-anim &
-```
-
-In doubt, list AVDs using `/opt/android-sdk-linux/tools/bin/avdmanager list avd`
-
-### Android x86_64 emulator
-
-The "normal" Android emulators emulate ARM architecture. If your host uses Intel x86 and supports hardware virtualization instructions, you can use the Android emulator for x86, which will be **much faster**. The Dockerfile installs the necessary packages, yet, for this option to work, you must:
-
-- Have an Intel x86-64 processor on your host which supports virtualization (e.g Intel VT)
-- Launch the container with the `--privileged` option.
-
 # Customization
 
-Please change the default password in the `Dockerfile` for your own setup.
-Any other customization consists in modifying the `Dockerfile` and re-building your own image. Enjoy!
+- In `docker-compose.yml`, please modify the default password.
+- Customize `Dockerfile`
 
 You are welcome to post issues or suggestions.
-
-# Using [frida](https://www.frida.re/)
-
-Only the part on the Linux host is installed.
-You need to push the frida server to the Android emulator.
-
-```bash
-$ adb push /opt/frida-server /data/local/tmp
-$ adb shell "chmod 755 /data/local/tmp/frida-server"
-$ adb shell
-1|root@generic:/data/local/tmp # ./frida-server
-```
 
 # Workshops
 
@@ -213,5 +203,5 @@ This image **does not provide any Android sample**.
 
 # Digest
 
-sha256: 7bab7e589d363af35f590ced9483c8f7ae808a42dc6d53944310818fd89a4b09
+sha256: d83b23e1ec8bac41a51e2d9379b8e34dd365331e0b38bb38eafe3524d5ffce43
 

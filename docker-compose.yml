@@ -1,10 +1,33 @@
-version: '3'
+---
+version: "3"
 services:
-   android-re:
-     build:
-       context: .
-     ports:
-       - "5022:22"
-       - "5900:5900"
-     container_name: android-re
-     privileged: true
+  android-emulators:
+    build:
+      context: .
+      dockerfile: Dockerfile.emulators
+      args:
+        - SSH_PASSWORD=mypass
+        - VNC_PASSWORD=mypass
+    image: cryptax/android-emu:2021.01
+    container_name: android-emulators
+    ports:
+      - "5022:22"
+      - "5900:5900"
+    privileged: true
+    volumes:
+      - /tmp/emulators:/workshop
+  android-retools:
+    build:
+      context: .
+      dockerfile: Dockerfile.re
+      args:
+        - SSH_PASSWORD=mypass
+        - VNC_PASSWORD=mypass
+    image: cryptax/android-re:2021.01
+    container_name: android-retools
+    ports:
+      - "6022:22"
+      - "6900:5900"
+      - "6800:8000"
+    volumes:
+      - /tmp/retools:/workshop
