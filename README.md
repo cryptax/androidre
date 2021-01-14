@@ -2,10 +2,13 @@
 
 This is 2  _docker_ images for the reverse engineering of _Android_ applications.
 
-1. Android emulators:  `cryptax/android-emu:2021.01`
-2. Android RE tools: `cryptax/android-re:2021.01`
+1. Android emulators:  `cryptax/android-emu:2021.01` [![](https://images.microbadger.com/badges/image/cryptax/android-emu.svg)](https://microbadger.com/images/cryptax/android-emu "Get your own image badge on microbadger.com")
+
+2. Android RE tools: `cryptax/android-re:2021.01` [![](https://images.microbadger.com/badges/image/cryptax/android-re.svg)](https://microbadger.com/images/cryptax/android-re "Get your own image badge on microbadger.com")
+
 
 **Disclaimer**: Please use responsibly.
+
 
 # Using the containers
 
@@ -39,7 +42,6 @@ $ vncviewer 127.0.0.1::5900
 ```
 
 
-[![](https://images.microbadger.com/badges/image/cryptax/android-re.svg)](https://microbadger.com/images/cryptax/android-re "Get your own image badge on microbadger.com")
 
 
 # Android emulators image
