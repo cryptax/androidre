@@ -15,7 +15,7 @@ RUN cd /opt/simplify && ./gradlew fatjar
 FROM ubuntu:20.04
 
 MAINTAINER Axelle Apvrille
-ENV REFRESHED_AT 2021-01-14
+ENV REFRESHED_AT 2021-01-21
 
 ARG DEBIAN_FRONTEND=noninteractive
 ARG SSH_PASSWORD 
@@ -123,6 +123,11 @@ RUN wget -q -O "/opt/jd-gui.jar" "https://github.com/java-decompiler/jd-gui/rele
 
 # JEB Demo
 RUN wget -q -O "/opt/jeb.zip" https://www.pnfsoftware.com/dl?jebdemo && mkdir -p /opt/jeb && unzip /opt/jeb.zip -d ./opt/jeb && rm /opt/jeb.zip
+
+# House
+RUN cd /opt && git clone https://github.com/nccgroup/house
+RUN cd /opt/house && pip3 install -r requirements.txt
+# Frida is required too but already installed
     
 # Krakatau
 #RUN cd /opt && git clone https://github.com/Storyyeller/Krakatau
