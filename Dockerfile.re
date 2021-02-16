@@ -48,6 +48,8 @@ RUN apt-get update && apt-get install -yqq openjdk-8-jre python3-pip python3-dev
     libffi-dev libssl-dev libxml2-dev libxslt1-dev libjpeg8-dev zlib1g-dev wkhtmltopdf  \
     graphviz
 
+RUN python3 -m pip install --upgrade pip && pip3 install wheel
+
 # ------------------------ Install NodeJS ---------------------------------------------------
 RUN curl -sL https://deb.nodesource.com/setup_15.x | bash -
 RUN apt-get install -yqq nodejs
@@ -148,7 +150,9 @@ RUN wget -q -O "/opt/procyon-decompiler.jar" "https://github.com/cryptax/droidly
 RUN pip3 install  -U quark-engine && pip3 install --upgrade 'jedi<0.18.0'
 
 # Radare2
-RUN cd /opt && git clone https://github.com/radare/radare2 && cd /opt/radare2 && sys/install.sh && r2pm init && r2pm update && r2pm install r2frida && pip3 install r2pipe
+RUN cd /opt && git clone https://github.com/radare/radare2 
+RUN /opt/radare2/sys/user.sh
+RUN ~/bin/r2pm init && ~/bin/r2pm update && ~/bin/r2pm install r2frida && pip3 install r2pipe
 
 # Simplify
 #COPY --from=build /opt/simplify/simplify/build/libs/*.jar /opt/simplify/
