@@ -2,14 +2,14 @@
 FROM alpine/git as clone
 WORKDIR /opt
 RUN git clone https://github.com/rednaga/axmlprinter
-RUN git clone --recursive https://github.com/CalebFenton/simplify
+#RUN git clone --recursive https://github.com/CalebFenton/simplify
 
 FROM gradle:6.7 as build
 WORKDIR /opt
 COPY --from=clone /opt/axmlprinter /opt/axmlprinter
 RUN cd /opt/axmlprinter && ./gradlew jar
-COPY --from=clone /opt/simplify /opt/simplify
-RUN cd /opt/simplify && ./gradlew fatjar
+#COPY --from=clone /opt/simplify /opt/simplify
+#RUN cd /opt/simplify && ./gradlew fatjar
 
 # ------------------------- Android RE environment image
 FROM ubuntu:20.04
@@ -146,7 +146,7 @@ RUN pip3 install  -U quark-engine && pip3 install --upgrade 'jedi<0.18.0'
 RUN cd /opt && git clone https://github.com/radare/radare2 && cd /opt/radare2 && sys/install.sh && r2pm init && r2pm update && r2pm install r2frida && pip3 install r2pipe
 
 # Simplify
-COPY --from=build /opt/simplify/simplify/build/libs/*.jar /opt/simplify/
+#COPY --from=build /opt/simplify/simplify/build/libs/*.jar /opt/simplify/
 
 # Install Smali / Baksmali
 RUN wget -q -O "/opt/smali.jar" "https://bitbucket.org/JesusFreke/smali/downloads/smali-${SMALI_VERSION}.jar"
