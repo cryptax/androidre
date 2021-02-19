@@ -3,19 +3,22 @@ FROM alpine/git as clone
 WORKDIR /opt
 RUN git clone https://github.com/rednaga/axmlprinter
 #RUN git clone --recursive https://github.com/CalebFenton/simplify
+RUN git clone https://github.com/skylot/jadx.git
 
-FROM gradle:6.7 as build
+FROM gradle:6.8 as build
 WORKDIR /opt
 COPY --from=clone /opt/axmlprinter /opt/axmlprinter
 RUN cd /opt/axmlprinter && ./gradlew jar
 #COPY --from=clone /opt/simplify /opt/simplify
 #RUN cd /opt/simplify && ./gradlew fatjar
+COPY --from=clone /opt/jadx /opt/jadx
+RUN cd /opt/jadx && ./gradlew dist
 
 # ------------------------- Android RE environment image
 FROM ubuntu:20.04
 
 MAINTAINER Axelle Apvrille
-ENV REFRESHED_AT 2021-01-21
+ENV REFRESHED_AT 2021-02-19
 
 ARG DEBIAN_FRONTEND=noninteractive
 ARG SSH_PASSWORD 
@@ -27,8 +30,7 @@ ENV BYTECODEVIEWER_VERSION "2.9.22"
 ENV CFR_VERSION "0.150"
 ENV CLASSYSHARK_VERSION "8.2"
 ENV DEX2JAR_VERSION "2.1-SNAPSHOT"
-ENV FRIDA_VERSION "14.2.2"
-ENV JADX_VERSION "1.2.0"
+ENV FRIDA_VERSION "14.2.13"
 ENV JD_VERSION "1.6.6"
 ENV PROCYON_VERSION "0.5.30"
 ENV SMALI_VERSION "2.4.0"
@@ -114,10 +116,11 @@ RUN cd /opt \
     && wget -q -O "/opt/frida-server.xz" https://github.com/frida/frida/releases/download/${FRIDA_VERSION}/frida-server-${FRIDA_VERSION}-android-arm.xz && unxz /opt/frida-server.xz && mv /opt/frida-server /opt/frida-server-android-arm && chmod u+x /opt/install-frida-server.sh
 
 # JADX
-RUN wget -q -O "/opt/jadx.zip" https://github.com/skylot/jadx/releases/download/v${JADX_VERSION}/jadx-${JADX_VERSION}.zip \
-    && mkdir -p /opt/jadx \
-    && unzip /opt/jadx.zip -d /opt/jadx \
-    && rm -f /opt/jadx.zip
+#RUN wget -q -O "/opt/jadx.zip" https://github.com/skylot/jadx/releases/download/v${JADX_VERSION}/jadx-${JADX_VERSION}.zip \
+#    && mkdir -p /opt/jadx \
+#   && unzip /opt/jadx.zip -d /opt/jadx \
+#    && rm -f /opt/jadx.zip
+COPY --from=build /opt/jadx/build /opt/jadx/
 
 # JD-GUI
 COPY ./setup/extract.sh /opt/extract.sh
