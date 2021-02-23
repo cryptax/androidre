@@ -8,11 +8,13 @@ services:
       args:
         - SSH_PASSWORD=mypass
         - VNC_PASSWORD=mypass
-    image: cryptax/android-emu:2021.01
+    image: cryptax/android-emu:2021.02
     container_name: android-emulators
     ports:
       - "5022:22"
+      - "5037:5037"
       - "5900:5900"
+      - "5800:8000"
     privileged: true
     volumes:
       - /tmp/emulators:/workshop
