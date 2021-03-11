@@ -24,8 +24,6 @@ services:
       dockerfile: Dockerfile.dexcalibur
     image: cryptax/dexcalibur:2021.03
     container_name: android-dexcalibur
-    ports:
-      - "5800:8000"
     network_mode: "host"
     volumes:
       - /tmp/dexcalibur:/workshop
@@ -36,7 +34,7 @@ services:
       args:
         - SSH_PASSWORD=mypass
         - VNC_PASSWORD=mypass
-    image: cryptax/android-re:2021.02
+    image: cryptax/android-re:2021.03
     container_name: android-retools
     ports:
       - "6022:22"

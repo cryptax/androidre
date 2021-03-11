@@ -1,10 +1,11 @@
 # What's this?
 
-This repository contains 2 _docker_ images for the reverse engineering of _Android_ applications.
+This repository contains 3 _docker_ images for the reverse engineering of _Android_ applications.
 
-1. Android emulators:  `cryptax/android-emu:2021.01` (3.4 GB). This image contains the Android SDK and emulators. 
+1. Android emulators:  `cryptax/android-emu:2021.01` (3.4 GB). This image contains the Android SDK and emulators. **BROKEN**
 
-2. Android RE tools: `cryptax/android-re:2021.02` (1.7 GB). This image contains reverse engineering tools. 
+2. Android RE tools: `cryptax/android-re:2021.03` (1.7 GB). This image contains reverse engineering tools.
+3. Dexcalibur: `cryptax/android-dexcalibur:2021.03`. This is **WORK IN PROGRESS**. Not yet working.
 
 
 **Disclaimer**: Please use responsibly.
@@ -13,8 +14,9 @@ This repository contains 2 _docker_ images for the reverse engineering of _Andro
 
 You are expected to download those containers via `docker pull`:
 
+- `docker pull cryptax/android-re:2021.03`
 - `docker pull cryptax/android-emu:2021.01`
-- `docker pull cryptax/android-re:2021.02`
+- `docker pull cryptax/android-dexcalibur:2021.03`
 
 If you wish to *build the images locally*: `docker-compose build`. This will build both images. If you only want to build one, add its name (see `docker-compose.yml`) e.g `docker-compose build android-retools`
 
@@ -83,8 +85,6 @@ The "normal" Android emulators emulate ARM architecture. If your host uses Intel
 - [apktool](https://bitbucket.org/iBotPeaches/apktool)
 - [axmlprinter](https://github.com/rednaga/axmlprinter)
 - [baksmali / smali](https://github.com/JesusFreke/smali)
-- [bytecodeviewer](https://github.com/Konloch/bytecode-viewer)
-- [CFR](http://www.benf.org/other/cfr/)
 - [dex2jar](https://github.com/pxb1988/dex2jar)
 - [droidlysis](https://github.com/cryptax/droidlysis)
 - [enjarify](https://github.com/Storyyeller/enjarify)

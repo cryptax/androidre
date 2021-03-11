@@ -2,23 +2,23 @@
 FROM alpine/git as clone
 WORKDIR /opt
 RUN git clone https://github.com/rednaga/axmlprinter
-#RUN git clone --recursive https://github.com/CalebFenton/simplify
+RUN git clone --recursive https://github.com/CalebFenton/simplify
 RUN git clone https://github.com/skylot/jadx.git
 
 FROM gradle:6.8 as build
 WORKDIR /opt
 COPY --from=clone /opt/axmlprinter /opt/axmlprinter
 RUN cd /opt/axmlprinter && ./gradlew jar
-#COPY --from=clone /opt/simplify /opt/simplify
-#RUN cd /opt/simplify && ./gradlew fatjar
+COPY --from=clone /opt/simplify /opt/simplify
+RUN cd /opt/simplify && ./gradlew fatjar
 COPY --from=clone /opt/jadx /opt/jadx
 RUN cd /opt/jadx && ./gradlew dist
 
-# ------------------------- Android RE environment image
+# ------------------------- Android Reverse Engineering environment image
 FROM ubuntu:20.04
 
 MAINTAINER Axelle Apvrille
-ENV REFRESHED_AT 2021-02-19
+ENV REFRESHED_AT 2021-03-11
 
 ARG DEBIAN_FRONTEND=noninteractive
 ARG SSH_PASSWORD 
@@ -33,7 +33,7 @@ ENV DEX2JAR_VERSION "2.1-SNAPSHOT"
 ENV FRIDA_VERSION "14.2.13"
 ENV JD_VERSION "1.6.6"
 ENV PROCYON_VERSION "0.5.30"
-ENV SMALI_VERSION "2.4.0"
+ENV SMALI_VERSION "2.5.2"
 ENV UBERAPK_VERSION "1.2.1"
 
 # For DroidLysis: libxml2-dev libxslt-dev libmagic-dev
@@ -42,19 +42,15 @@ ENV UBERAPK_VERSION "1.2.1"
 # For Quark engine: graphviz
 
 #RUN apt-get update && apt-get install -yqq default-jdk libpulse0 libxcursor1 adb python3-pip python3-dev python3-venv pkgconf pandoc curl \
-RUN apt-get update && apt-get install -yqq openjdk-8-jre python3-pip python3-dev python3-venv pkgconf pandoc curl  \
+RUN apt-get update && apt-get install -yqq openjdk-8-jre python3-pip python3-dev python3-venv pkgconf pandoc curl  locate \
     git build-essential tree wget unzip zip emacs vim supervisor \
     libxml2-dev libxslt-dev libmagic-dev \
     openssh-server ssh \
     xvfb x11vnc xfce4 xfce4-terminal\
     libffi-dev libssl-dev libxml2-dev libxslt1-dev libjpeg8-dev zlib1g-dev wkhtmltopdf  \
-    graphviz
+    graphviz adb
 
 RUN python3 -m pip install --upgrade pip && pip3 install wheel
-
-# ------------------------ Install NodeJS ---------------------------------------------------
-RUN curl -sL https://deb.nodesource.com/setup_15.x | bash -
-RUN apt-get install -yqq nodejs
 
 # ----------------------------- RE Tools
 # Androguard
@@ -84,10 +80,10 @@ ENV PATH $PATH:/opt/apktool
 COPY --from=build /opt/axmlprinter/build/libs/*.jar /opt/axmlprinter/
 
 # ByteCode Viewer
-RUN wget -q -O "/opt/bytecode-viewer.jar" "https://github.com/Konloch/bytecode-viewer/releases/download/v2.9.22/Bytecode-Viewer-${BYTECODEVIEWER_VERSION}.jar"
+#RUN wget -q -O "/opt/bytecode-viewer.jar" "https://github.com/Konloch/bytecode-viewer/releases/download/v2.9.22/Bytecode-Viewer-${BYTECODEVIEWER_VERSION}.jar"
 
 # CFR
-RUN wget -q -O "/opt/cfr_${CFR_VERSION}.jar" http://www.benf.org/other/cfr/cfr-${CFR_VERSION}.jar
+#RUN wget -q -O "/opt/cfr_${CFR_VERSION}.jar" http://www.benf.org/other/cfr/cfr-${CFR_VERSION}.jar
 
 # ClassyShark
 #RUN wget -q -O "/opt/ClassyShark.jar" https://github.com/google/android-classyshark/releases/download/${CLASSYSHARK_VERSION}/ClassyShark.jar
@@ -111,7 +107,10 @@ RUN cd /opt && git clone https://github.com/Storyyeller/enjarify && ln -s /opt/e
 
 # Frida
 RUN pip3 install frida frida-tools
-COPY ./setup/install-frida-server.sh /opt    
+COPY ./setup/install-frida-server.sh /opt
+# NodeJS is required for r2frida
+RUN curl -sL https://deb.nodesource.com/setup_15.x | bash -
+RUN apt-get install -yqq nodejs
 RUN cd /opt \
     && wget -q -O "/opt/frida-server.xz" https://github.com/frida/frida/releases/download/${FRIDA_VERSION}/frida-server-${FRIDA_VERSION}-android-arm.xz && unxz /opt/frida-server.xz && mv /opt/frida-server /opt/frida-server-android-arm && chmod u+x /opt/install-frida-server.sh
 
@@ -130,8 +129,8 @@ RUN wget -q -O "/opt/jd-gui.jar" "https://github.com/java-decompiler/jd-gui/rele
 RUN wget -q -O "/opt/jeb.zip" https://www.pnfsoftware.com/dl?jebdemo && mkdir -p /opt/jeb && unzip /opt/jeb.zip -d ./opt/jeb && rm /opt/jeb.zip
 
 # House
-RUN cd /opt && git clone https://github.com/nccgroup/house
-RUN cd /opt/house && pip3 install -r requirements.txt
+#RUN cd /opt && git clone https://github.com/nccgroup/house
+#RUN cd /opt/house && pip3 install -r requirements.txt
 # Frida is required too but already installed
     
 # Krakatau
@@ -158,7 +157,7 @@ RUN /opt/radare2/sys/user.sh
 RUN ~/bin/r2pm init && ~/bin/r2pm update && ~/bin/r2pm install r2frida && pip3 install r2pipe
 
 # Simplify
-#COPY --from=build /opt/simplify/simplify/build/libs/*.jar /opt/simplify/
+COPY --from=build /opt/simplify/simplify/build/libs/*.jar /opt/simplify/
 
 # Install Smali / Baksmali
 RUN wget -q -O "/opt/smali.jar" "https://bitbucket.org/JesusFreke/smali/downloads/smali-${SMALI_VERSION}.jar"
@@ -189,7 +188,7 @@ RUN mkdir ~/.vnc \
 RUN mkdir -p /var/log/supervisor
 COPY ./setup/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
-RUN echo "export PATH=$PATH" >> /etc/profile \
+RUN echo "export PATH=$PATH:/root/bin" >> /etc/profile \
      && echo "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH" >> /etc/profile \
      && echo "export LC_ALL=C" >> /root/.bashrc	       
 
@@ -207,3 +206,4 @@ WORKDIR /workshop
 EXPOSE 5900
 EXPOSE 5037
 EXPOSE 22
+EXPOSE 8000 
