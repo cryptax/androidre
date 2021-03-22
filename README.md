@@ -82,6 +82,7 @@ The "normal" Android emulators emulate ARM architecture. If your host uses Intel
 - [androguard](https://github.com/androguard/androguard)
 - [apkfile](https://github.com/CalebFenton/apkfile)
 - [apkid](https://github.com/rednaga/APKiD/)
+- [apkleaks](https://github.com/dwisiswant0/apkleaks)
 - [apktool](https://bitbucket.org/iBotPeaches/apktool)
 - [axmlprinter](https://github.com/rednaga/axmlprinter)
 - [baksmali / smali](https://github.com/JesusFreke/smali)

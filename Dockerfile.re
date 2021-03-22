@@ -2,15 +2,15 @@
 FROM alpine/git as clone
 WORKDIR /opt
 RUN git clone https://github.com/rednaga/axmlprinter
-RUN git clone --recursive https://github.com/CalebFenton/simplify
+#RUN git clone --recursive https://github.com/CalebFenton/simplify
 RUN git clone https://github.com/skylot/jadx.git
 
 FROM gradle:6.8 as build
 WORKDIR /opt
 COPY --from=clone /opt/axmlprinter /opt/axmlprinter
 RUN cd /opt/axmlprinter && ./gradlew jar
-COPY --from=clone /opt/simplify /opt/simplify
-RUN cd /opt/simplify && ./gradlew fatjar
+#COPY --from=clone /opt/simplify /opt/simplify
+#RUN cd /opt/simplify && ./gradlew fatjar
 COPY --from=clone /opt/jadx /opt/jadx
 RUN cd /opt/jadx && ./gradlew dist
 
@@ -18,7 +18,7 @@ RUN cd /opt/jadx && ./gradlew dist
 FROM ubuntu:20.04
 
 MAINTAINER Axelle Apvrille
-ENV REFRESHED_AT 2021-03-11
+ENV REFRESHED_AT 2021-03-22
 
 ARG DEBIAN_FRONTEND=noninteractive
 ARG SSH_PASSWORD 
@@ -68,6 +68,7 @@ RUN pip3 install --no-cache-dir --upgrade pip setuptools wheel && \
     cd /opt && git clone https://github.com/rednaga/APKiD/ && \
     cd /opt/APKiD && python3 prep-release.py && pip3 install -e . && \
     rm -rf tests docker Dockerfile
+
 
 # Apktool
 RUN mkdir -p /opt/apktool
@@ -157,7 +158,7 @@ RUN /opt/radare2/sys/user.sh
 RUN ~/bin/r2pm init && ~/bin/r2pm update && ~/bin/r2pm install r2frida && pip3 install r2pipe
 
 # Simplify
-COPY --from=build /opt/simplify/simplify/build/libs/*.jar /opt/simplify/
+#COPY --from=build /opt/simplify/simplify/build/libs/*.jar /opt/simplify/
 
 # Install Smali / Baksmali
 RUN wget -q -O "/opt/smali.jar" "https://bitbucket.org/JesusFreke/smali/downloads/smali-${SMALI_VERSION}.jar"
@@ -167,7 +168,13 @@ RUN wget -q -O "/opt/baksmali.jar" "https://bitbucket.org/JesusFreke/smali/downl
 RUN pip3 install flask && cd /opt && git clone https://github.com/dorneanu/smalisca && cd /opt/smalisca && pip3 install -r requirements.txt && sed -i 's/PYTHON.*=.*/PYTHON=python3/g' Makefile && make install
 
 # uber-apk-signer
-RUN wget -q -O "/opt/uber-apk-signer.jar" https://github.com/patrickfav/uber-apk-signer/releases/download/v1.2.1/uber-apk-signer-${UBERAPK_VERSION}.jar 
+RUN wget -q -O "/opt/uber-apk-signer.jar" https://github.com/patrickfav/uber-apk-signer/releases/download/v1.2.1/uber-apk-signer-${UBERAPK_VERSION}.jar
+
+# apkleaks
+RUN pip3 install apkleaks
+# apkleaks requires jadx to be on the path
+ENV PATH $PATH:/opt/jadx/jadx/bin
+
 
 # ------------------------ Install SSH access ---------------------------------------------
  RUN mkdir /var/run/sshd \
