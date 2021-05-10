@@ -2,11 +2,11 @@
 FROM ubuntu:20.04
 
 MAINTAINER Axelle Apvrille
-ENV REFRESHED_AT 2021-03-08
+ENV REFRESHED_AT 2021-05-10
 
 ARG DEBIAN_FRONTEND=noninteractive
 ARG JDK_VERSION=8
-ENV FRIDA_VERSION 14.2.13
+ENV FRIDA_VERSION 14.2.18
 ENV FRIDA_SERVER frida-server-${FRIDA_VERSION}-android-x86_64.xz
 
 # --------------------- Various requirements -------------------------
