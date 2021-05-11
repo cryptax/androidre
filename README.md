@@ -5,7 +5,7 @@ This repository contains 3 _docker_ images for the reverse engineering of _Andro
 1. Android emulators:  `cryptax/android-emu:2021.01` (3.4 GB). This image contains the Android SDK and emulators. **BROKEN**
 
 2. Android RE tools: `cryptax/android-re:2021.05` (1.7 GB). This image contains reverse engineering tools.
-3. Dexcalibur: `cryptax/android-dexcalibur:2021.03`. 
+3. Dexcalibur: `cryptax/android-dexcalibur:2021.05`. Contains Dexcalibur. Particularly useful for users whose OS does not support Dexcalibur...
 
 
 **Disclaimer**: Please use responsibly.
@@ -16,7 +16,7 @@ You are expected to download those containers via `docker pull`:
 
 - `docker pull cryptax/android-re:2021.05`
 - `docker pull cryptax/android-emu:2021.01`
-- `docker pull cryptax/android-dexcalibur:2021.03`
+- `docker pull cryptax/android-dexcalibur:2021.05`
 
 If you wish to *build the images locally*: `docker-compose build`. This will build both images. If you only want to build one, add its name (see `docker-compose.yml`) e.g `docker-compose build android-retools`
 
