@@ -174,6 +174,9 @@ RUN pip3 install apkleaks
 # apkleaks requires jadx to be on the path
 ENV PATH $PATH:/opt/jadx/jadx/bin
 
+# pyaxml parser which will install a commandline apkinfo to quickly display info about APK
+RUN pip3 install pyaxmlparser
+
 
 # ------------------------ Install SSH access ---------------------------------------------
  RUN mkdir /var/run/sshd \
