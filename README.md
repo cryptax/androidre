@@ -22,6 +22,12 @@ If you wish to *build the images locally*: `docker-compose build`. This will bui
 
 # Run the containers
 
+## Running dexcalibur
+
+`docker run --rm --network=host -v /tmp/dexcalibur:/workshop -it cryptax/dexcalibur:2021.05 /bin/bash`
+
+## Running android-re or android-emu
+
 Use `docker-compose`:
 
 - Start both containers: `docker-compose up -d`.
