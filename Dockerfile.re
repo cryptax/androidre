@@ -18,7 +18,7 @@ RUN cd /opt/jadx && ./gradlew dist
 FROM ubuntu:20.04
 
 MAINTAINER Axelle Apvrille
-ENV REFRESHED_AT 2021-05-10
+ENV REFRESHED_AT 2021-07-08
 
 ARG DEBIAN_FRONTEND=noninteractive
 ARG SSH_PASSWORD 
@@ -29,7 +29,7 @@ ENV BYTECODEVIEWER_VERSION "2.9.22"
 ENV CFR_VERSION "0.150"
 ENV CLASSYSHARK_VERSION "8.2"
 ENV DEX2JAR_VERSION "2.1-SNAPSHOT"
-ENV FRIDA_VERSION "14.2.18"
+ENV FRIDA_VERSION "15.0.0"
 ENV JD_VERSION "1.6.6"
 ENV PROCYON_VERSION "0.5.30"
 ENV SMALI_VERSION "2.5.2"
@@ -162,6 +162,9 @@ RUN ~/bin/r2pm init && ~/bin/r2pm update && ~/bin/r2pm install r2frida && pip3 i
 # Install Smali / Baksmali
 RUN wget -q -O "/opt/smali.jar" "https://bitbucket.org/JesusFreke/smali/downloads/smali-${SMALI_VERSION}.jar"
 RUN wget -q -O "/opt/baksmali.jar" "https://bitbucket.org/JesusFreke/smali/downloads/baksmali-${SMALI_VERSION}.jar"
+RUN wget -q -O "/opt/smali" "https://bitbucket.org/JesusFreke/smali/downloads/smali"
+RUN wget -q -O "/opt/baksmali" "https://bitbucket.org/JesusFreke/smali/downloads/baksmali"
+ENV PATH $PATH:/opt
 
 # Smalisca
 RUN pip3 install flask && cd /opt && git clone https://github.com/dorneanu/smalisca && cd /opt/smalisca && pip3 install -r requirements.txt && sed -i 's/PYTHON.*=.*/PYTHON=python3/g' Makefile && make install
