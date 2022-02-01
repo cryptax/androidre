@@ -18,18 +18,18 @@ RUN cd /opt/jadx && ./gradlew dist
 FROM ubuntu:20.04
 
 MAINTAINER Axelle Apvrille
-ENV REFRESHED_AT 2021-08-19
+ENV REFRESHED_AT 2022-02-01
 
 ARG DEBIAN_FRONTEND=noninteractive
 ARG SSH_PASSWORD 
 ARG VNC_PASSWORD
 ENV ANDROGUARD_VERSION "3.4.0a1"
-ENV APKTOOL_VERSION "2.5.0"
+ENV APKTOOL_VERSION "2.6.0"
 ENV BYTECODEVIEWER_VERSION "2.9.22"
 ENV CFR_VERSION "0.150"
 ENV CLASSYSHARK_VERSION "8.2"
 ENV DEX2JAR_VERSION "2.1-SNAPSHOT"
-ENV FRIDA_VERSION "15.0.15"
+ENV FRIDA_VERSION "15.1.15"
 ENV JD_VERSION "1.6.6"
 ENV PROCYON_VERSION "0.5.30"
 ENV SMALI_VERSION "2.5.2"
@@ -41,7 +41,7 @@ ENV UBERAPK_VERSION "1.2.1"
 # For Quark engine: graphviz
 
 #RUN apt-get update && apt-get install -yqq default-jdk libpulse0 libxcursor1 adb python3-pip python3-dev python3-venv pkgconf pandoc curl \
-RUN apt-get update && apt-get install -yqq openjdk-8-jre python3-pip python3-dev python3-venv pkgconf pandoc curl  locate \
+RUN apt-get update && apt-get install -yqq openjdk-8-jre openjdk-11-jre python3-pip python3-dev python3-venv pkgconf pandoc curl  locate \
     git build-essential tree wget unzip zip emacs vim supervisor \
     libxml2-dev libxslt-dev libmagic-dev \
     openssh-server ssh \
@@ -52,6 +52,10 @@ RUN apt-get update && apt-get install -yqq openjdk-8-jre python3-pip python3-dev
 RUN python3 -m pip install --upgrade pip && pip3 install wheel
 
 # ----------------------------- RE Tools
+
+# APKdiff
+RUN wget -q -O "/opt/apkdiffy.py" https://raw.githubusercontent.com/daniellockyer/apkdiff/master/apkdiff.py
+
 # Androguard
 RUN wget -q -O "/opt/andro.zip" https://github.com/androguard/androguard/archive/v${ANDROGUARD_VERSION}.zip && unzip /opt/andro.zip -d /opt && rm -f /opt/andro.zip
 RUN cd /opt/androguard-${ANDROGUARD_VERSION} && pip3 install .[magic,GUI] && pip3 install --upgrade 'jedi<0.18.0' && rm -r ./docs ./examples ./tests ./lib*
@@ -60,13 +64,14 @@ RUN cd /opt/androguard-${ANDROGUARD_VERSION} && pip3 install .[magic,GUI] && pip
 #RUN cd /opt && git clone https://github.com/CalebFenton/apkfile
 
 # APKiD
-RUN pip3 install --no-cache-dir --upgrade pip setuptools wheel && \
-    pip3 wheel --quiet --no-cache-dir --wheel-dir=/tmp/yara-python --build-option="build" --build-option="--enable-dex" git+https://github.com/VirusTotal/yara-python.git@v3.11.0 && \
-    pip3 install --quiet --no-cache-dir --no-index --find-links=/tmp/yara-python yara-python && \
-    rm -rf /tmp/yara-python && \
-    cd /opt && git clone https://github.com/rednaga/APKiD/ && \
-    cd /opt/APKiD && python3 prep-release.py && pip3 install -e . && \
-    rm -rf tests docker Dockerfile
+RUN pip3 install apkid
+#RUN pip3 install --no-cache-dir --upgrade pip setuptools wheel && \
+#    pip3 wheel --quiet --no-cache-dir --wheel-dir=/tmp/yara-python --build-option="build" #--build-option="--enable-dex" git+https://github.com/VirusTotal/yara-python.git@v3.11.0 && \
+#    pip3 install --quiet --no-cache-dir --no-index --find-links=/tmp/yara-python yara-python && \
+#    rm -rf /tmp/yara-python && \
+#    cd /opt && git clone https://github.com/rednaga/APKiD/ && \
+#    cd /opt/APKiD && python3 prep-release.py && pip3 install -e . && \
+#    rm -rf tests docker Dockerfile
 
 
 # Apktool
@@ -105,14 +110,14 @@ COPY ./setup/droidconfig.py /opt/droidlysis/droidconfig.py
 # Enjarify
 RUN cd /opt && git clone https://github.com/Storyyeller/enjarify && ln -s /opt/enjarify/enjarify.sh /usr/bin/enjarify
 
-# Frida
-RUN pip3 install frida frida-tools
+# Frida, Frida Server and Frida-DEXDump
+RUN pip3 install frida frida-tools frida-dexdump
 COPY ./setup/install-frida-server.sh /opt
-# NodeJS is required for r2frida
-RUN curl -sL https://deb.nodesource.com/setup_15.x | bash -
-RUN apt-get install -yqq nodejs
 RUN cd /opt \
     && wget -q -O "/opt/frida-server.xz" https://github.com/frida/frida/releases/download/${FRIDA_VERSION}/frida-server-${FRIDA_VERSION}-android-arm.xz && unxz /opt/frida-server.xz && mv /opt/frida-server /opt/frida-server-android-arm && chmod u+x /opt/install-frida-server.sh
+
+# Fridump
+RUN cd /opt && git clone https://github.com/Nightbringer21/fridump.git
 
 # JADX
 #RUN wget -q -O "/opt/jadx.zip" https://github.com/skylot/jadx/releases/download/v${JADX_VERSION}/jadx-${JADX_VERSION}.zip \
@@ -125,18 +130,10 @@ COPY --from=build /opt/jadx/build /opt/jadx/
 COPY ./setup/extract.sh /opt/extract.sh
 RUN wget -q -O "/opt/jd-gui.jar" "https://github.com/java-decompiler/jd-gui/releases/download/v${JD_VERSION}/jd-gui-${JD_VERSION}.jar" && chmod +x /opt/extract.sh
 
-# JEB Demo
+# JEB Demo - requires JDK 11
 RUN wget -q -O "/opt/jeb.zip" https://www.pnfsoftware.com/dl?jebdemo && mkdir -p /opt/jeb && unzip /opt/jeb.zip -d ./opt/jeb && rm /opt/jeb.zip
 
-# House
-#RUN cd /opt && git clone https://github.com/nccgroup/house
-#RUN cd /opt/house && pip3 install -r requirements.txt
-# Frida is required too but already installed
-    
-# Krakatau
-#RUN cd /opt && git clone https://github.com/Storyyeller/Krakatau
-
-# Mobsf
+# Mobsf - requires JDK 8
 #RUN cd /opt && git clone https://github.com/MobSF/Mobile-Security-Framework-MobSF.git && cd ./Mobile-Security-Framework-MobSF && ./setup.sh
 
 # Oat2Dex
@@ -154,6 +151,10 @@ RUN pip3 install  -U quark-engine && pip3 install --upgrade 'jedi<0.18.0'
 # Radare2
 RUN cd /opt && git clone https://github.com/radare/radare2 
 RUN /opt/radare2/sys/user.sh
+
+# NodeJS is required for r2frida
+RUN curl -sL https://deb.nodesource.com/setup_16.x | bash -
+RUN apt-get install -yqq nodejs
 RUN ~/bin/r2pm init && ~/bin/r2pm update && ~/bin/r2pm install r2frida && pip3 install r2pipe
 
 # Simplify
@@ -215,7 +216,7 @@ VOLUME ["/data"] # to be used for instance to pass along samples
 CMD [ "/usr/bin/supervisord", "-c",  "/etc/supervisor/conf.d/supervisord.conf" ]
 WORKDIR /workshop
 
+EXPOSE 22
 EXPOSE 5900
 EXPOSE 5037
-EXPOSE 22
 EXPOSE 8000 
