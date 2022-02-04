@@ -2,10 +2,9 @@
 
 This repository contains 3 _docker_ images for the reverse engineering of _Android_ applications.
 
-1. Android emulators:  `cryptax/android-emu:2021.01` (3.4 GB). This image contains the Android SDK and emulators. **BROKEN**
-
-2. Android RE tools: `cryptax/android-re:2021.07` (1.7 GB). This image contains reverse engineering tools.
-3. Dexcalibur: `cryptax/dexcalibur:2021.05`. Contains Dexcalibur. Particularly useful for users whose OS does not support Dexcalibur...
+1. Android RE tools: `cryptax/android-re:2022.02` (1.7 GB). This image contains reverse engineering tools.
+2. Dexcalibur: `cryptax/dexcalibur:2021.05`. Contains Dexcalibur. Particularly useful for users whose OS does not support Dexcalibur...
+3. *Obsolete and broken*: Android emulators:  `cryptax/android-emu:2021.01` (3.4 GB). This image contains the Android SDK and emulators. 
 
 
 **Disclaimer**: Please use responsibly.
@@ -14,8 +13,7 @@ This repository contains 3 _docker_ images for the reverse engineering of _Andro
 
 You are expected to download those containers via `docker pull`:
 
-- `docker pull cryptax/android-re:2021.07`
-- `docker pull cryptax/android-emu:2021.01`
+- `docker pull cryptax/android-re:2022.07`
 - `docker pull cryptax/dexcalibur:2021.05`
 
 If you wish to *build the images locally*: `docker-compose build`. This will build both images. If you only want to build one, add its name (see `docker-compose.yml`) e.g `docker-compose build android-retools`
@@ -30,9 +28,8 @@ If you wish to *build the images locally*: `docker-compose build`. This will bui
 
 Use `docker-compose`:
 
-- Start both containers: `docker-compose up -d`.
-- Start Android emulator container: `docker-compose up -d android-emulators`
 - Start Android RE tools container: `docker-compose up -d android-retools`
+- Start Android emulator container: `docker-compose up -d android-emulators`
 - Stop both containers: `docker-compose stop`
 - To stop only one container, same as starting it: add its name at the end of the command.
 
@@ -96,6 +93,7 @@ The "normal" Android emulators emulate ARM architecture. If your host uses Intel
 - [droidlysis](https://github.com/cryptax/droidlysis)
 - [enjarify](https://github.com/Storyyeller/enjarify)
 - [frida](https://frida.re)
+- [frida-dexdump](https://github.com/hluwa/FRIDA-DEXDump)
 - [jadx](https://github.com/skylot/jadx)
 - [java decompiler](https://github.com/java-decompiler/jd-gui/)
 - [JEB](https://www.pnfsoftware.com) - demo version
