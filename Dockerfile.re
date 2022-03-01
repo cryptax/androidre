@@ -2,15 +2,15 @@
 FROM alpine/git as clone
 WORKDIR /opt
 RUN git clone https://github.com/rednaga/axmlprinter
-#RUN git clone --recursive https://github.com/CalebFenton/simplify
+RUN git clone --recursive https://github.com/CalebFenton/simplify
 RUN git clone https://github.com/skylot/jadx.git
 
 FROM gradle:6.8 as build
 WORKDIR /opt
 COPY --from=clone /opt/axmlprinter /opt/axmlprinter
 RUN cd /opt/axmlprinter && ./gradlew jar
-#COPY --from=clone /opt/simplify /opt/simplify
-#RUN cd /opt/simplify && ./gradlew fatjar
+COPY --from=clone /opt/simplify /opt/simplify
+RUN cd /opt/simplify && ./gradlew fatjar
 COPY --from=clone /opt/jadx /opt/jadx
 RUN cd /opt/jadx && ./gradlew dist
 
@@ -18,13 +18,13 @@ RUN cd /opt/jadx && ./gradlew dist
 FROM ubuntu:20.04
 
 MAINTAINER Axelle Apvrille
-ENV REFRESHED_AT 2022-02-14
+ENV REFRESHED_AT 2022-03-01
 
 ARG DEBIAN_FRONTEND=noninteractive
 ARG SSH_PASSWORD 
 ARG VNC_PASSWORD
 ENV ANDROGUARD_VERSION "3.4.0a1"
-ENV APKTOOL_VERSION "2.6.0"
+ENV APKTOOL_VERSION "2.6.1"
 ENV BYTECODEVIEWER_VERSION "2.9.22"
 ENV CFR_VERSION "0.150"
 ENV CLASSYSHARK_VERSION "8.2"
