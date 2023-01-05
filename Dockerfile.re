@@ -15,21 +15,17 @@ COPY --from=clone /opt/jadx /opt/jadx
 RUN cd /opt/jadx && ./gradlew dist
 
 # ------------------------- Android Reverse Engineering environment image
-FROM ubuntu:20.04
+FROM ubuntu:22.04
 
 MAINTAINER Axelle Apvrille
-ENV REFRESHED_AT 2022-03-01
+ENV REFRESHED_AT 2023-01-05
 
 ARG DEBIAN_FRONTEND=noninteractive
 ARG SSH_PASSWORD 
 ARG VNC_PASSWORD
-ENV ANDROGUARD_VERSION "3.4.0a1"
-ENV APKTOOL_VERSION "2.6.1"
-ENV BYTECODEVIEWER_VERSION "2.9.22"
-ENV CFR_VERSION "0.150"
-ENV CLASSYSHARK_VERSION "8.2"
+ENV APKTOOL_VERSION "2.7.0"
 ENV DEX2JAR_VERSION "2.1-SNAPSHOT"
-ENV FRIDA_VERSION "15.1.17"
+ENV FRIDA_VERSION "16.0.8"
 ENV JD_VERSION "1.6.6"
 ENV PROCYON_VERSION "0.5.30"
 ENV SMALI_VERSION "2.5.2"
@@ -38,7 +34,7 @@ ENV UBERAPK_VERSION "1.2.1"
 # For DroidLysis: libxml2-dev libxslt-dev libmagic-dev
 # For SSH: openssh-server ssh
 # For VNC: xvfb x11vnc xfce4 xfce4-terminal
-# For Quark engine: graphviz
+# For Quark engine: graphviz libbz2-dev
 
 #RUN apt-get update && apt-get install -yqq default-jdk libpulse0 libxcursor1 adb python3-pip python3-dev python3-venv pkgconf pandoc curl \
 RUN apt-get update && apt-get install -yqq openjdk-8-jre openjdk-11-jre python3-pip python3-dev python3-venv pkgconf pandoc curl  locate \
@@ -47,7 +43,7 @@ RUN apt-get update && apt-get install -yqq openjdk-8-jre openjdk-11-jre python3-
     openssh-server ssh \
     xvfb x11vnc xfce4 xfce4-terminal\
     libffi-dev libssl-dev libxml2-dev libxslt1-dev libjpeg8-dev zlib1g-dev wkhtmltopdf  \
-    graphviz adb
+    graphviz adb libbz2-dev
 
 RUN python3 -m pip install --upgrade pip && pip3 install wheel
 
@@ -57,8 +53,8 @@ RUN python3 -m pip install --upgrade pip && pip3 install wheel
 RUN wget -q -O "/opt/apkdiffy.py" https://raw.githubusercontent.com/daniellockyer/apkdiff/master/apkdiff.py
 
 # Androguard
-RUN wget -q -O "/opt/andro.zip" https://github.com/androguard/androguard/archive/v${ANDROGUARD_VERSION}.zip && unzip /opt/andro.zip -d /opt && rm -f /opt/andro.zip
-RUN cd /opt/androguard-${ANDROGUARD_VERSION} && pip3 install .[magic,GUI] && pip3 install --upgrade 'jedi<0.18.0' && rm -r ./docs ./examples ./tests ./lib*
+#RUN wget -q -O "/opt/andro.zip" https://github.com/androguard/androguard/archive/v${ANDROGUARD_VERSION}.zip && unzip /opt/andro.zip -d /opt && rm -f /opt/andro.zip
+#RUN cd /opt/androguard-${ANDROGUARD_VERSION} && pip3 install .[magic,GUI] && pip3 install --upgrade 'jedi<0.18.0' && rm -r ./docs ./examples ./tests ./lib*
 
 # Apkfile library
 #RUN cd /opt && git clone https://github.com/CalebFenton/apkfile
@@ -133,9 +129,6 @@ RUN wget -q -O "/opt/jd-gui.jar" "https://github.com/java-decompiler/jd-gui/rele
 # JEB Demo - requires JDK 11
 RUN wget -q -O "/opt/jeb.zip" https://www.pnfsoftware.com/dl?jebdemo && mkdir -p /opt/jeb && unzip /opt/jeb.zip -d ./opt/jeb && rm /opt/jeb.zip
 
-# Mobsf - requires JDK 8
-#RUN cd /opt && git clone https://github.com/MobSF/Mobile-Security-Framework-MobSF.git && cd ./Mobile-Security-Framework-MobSF && ./setup.sh
-
 # Oat2Dex
 RUN wget -q -O "/opt/oat2dex.py" https://github.com/jakev/oat2dex-python/blob/master/oat2dex.py
 
@@ -146,7 +139,7 @@ RUN pip3 install objection
 RUN wget -q -O "/opt/procyon-decompiler.jar" "https://github.com/cryptax/droidlysis/raw/master/external/procyon-decompiler-${PROCYON_VERSION}.jar"
 
 # Quark engine
-RUN pip3 install  -U quark-engine && pip3 install --upgrade 'jedi<0.18.0'
+RUN pip3 install -U quark-engine
 
 # Radare2
 RUN cd /opt && git clone https://github.com/radare/radare2 
@@ -166,9 +159,6 @@ RUN wget -q -O "/opt/baksmali.jar" "https://bitbucket.org/JesusFreke/smali/downl
 RUN wget -q -O "/opt/smali" "https://bitbucket.org/JesusFreke/smali/downloads/smali"
 RUN wget -q -O "/opt/baksmali" "https://bitbucket.org/JesusFreke/smali/downloads/baksmali"
 ENV PATH $PATH:/opt
-
-# Smalisca
-RUN pip3 install flask && cd /opt && git clone https://github.com/dorneanu/smalisca && cd /opt/smalisca && pip3 install -r requirements.txt && sed -i 's/PYTHON.*=.*/PYTHON=python3/g' Makefile && make install
 
 # uber-apk-signer
 RUN wget -q -O "/opt/uber-apk-signer.jar" https://github.com/patrickfav/uber-apk-signer/releases/download/v1.2.1/uber-apk-signer-${UBERAPK_VERSION}.jar
