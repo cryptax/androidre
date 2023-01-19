@@ -22,7 +22,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.dexcalibur
-    image: cryptax/dexcalibur:2021.05
+    image: cryptax/dexcalibur:2023.01
     container_name: android-dexcalibur
     network_mode: "host"
     volumes:
