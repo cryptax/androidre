@@ -18,7 +18,7 @@ RUN cd /opt/jadx && ./gradlew dist
 FROM ubuntu:22.04
 
 MAINTAINER Axelle Apvrille
-ENV REFRESHED_AT 2023-01-05
+ENV REFRESHED_AT 2023-02-28
 
 ARG DEBIAN_FRONTEND=noninteractive
 ARG SSH_PASSWORD 
@@ -43,7 +43,7 @@ RUN apt-get update && apt-get install -yqq openjdk-8-jre openjdk-11-jre python3-
     openssh-server ssh \
     xvfb x11vnc xfce4 xfce4-terminal\
     libffi-dev libssl-dev libxml2-dev libxslt1-dev libjpeg8-dev zlib1g-dev wkhtmltopdf  \
-    graphviz adb libbz2-dev
+    graphviz adb libbz2-dev file
 
 RUN python3 -m pip install --upgrade pip && pip3 install wheel
 
@@ -127,7 +127,7 @@ COPY ./setup/extract.sh /opt/extract.sh
 RUN wget -q -O "/opt/jd-gui.jar" "https://github.com/java-decompiler/jd-gui/releases/download/v${JD_VERSION}/jd-gui-${JD_VERSION}.jar" && chmod +x /opt/extract.sh
 
 # JEB Demo - requires JDK 11
-RUN wget -q -O "/opt/jeb.zip" https://www.pnfsoftware.com/dl?jebdemo && mkdir -p /opt/jeb && unzip /opt/jeb.zip -d ./opt/jeb && rm /opt/jeb.zip
+#RUN wget -q -O "/opt/jeb.zip" https://www.pnfsoftware.com/dl?jebdemo && mkdir -p /opt/jeb && unzip /opt/jeb.zip -d ./opt/jeb && rm /opt/jeb.zip
 
 # Oat2Dex
 RUN wget -q -O "/opt/oat2dex.py" https://github.com/jakev/oat2dex-python/blob/master/oat2dex.py
