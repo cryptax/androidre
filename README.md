@@ -2,8 +2,8 @@
 
 This repository contains 3 _docker_ images for the reverse engineering of _Android_ applications.
 
-1. Android RE tools: `cryptax/android-re:2022.03` (1.7 GB). This image contains reverse engineering tools.
-2. Dexcalibur: `cryptax/dexcalibur:2021.05`. Contains Dexcalibur. Particularly useful for users whose OS does not support Dexcalibur...
+1. Android RE tools: `cryptax/android-re:2023.07` (1.7 GB). This image contains reverse engineering tools.
+2. Dexcalibur: `cryptax/dexcalibur:2023.01`. Contains Dexcalibur. Particularly useful for users whose OS does not support Dexcalibur...
 3. *Obsolete and broken*: Android emulators:  `cryptax/android-emu:2021.01` (3.4 GB). This image contains the Android SDK and emulators. 
 
 
@@ -13,8 +13,8 @@ This repository contains 3 _docker_ images for the reverse engineering of _Andro
 
 You are expected to download those containers via `docker pull`:
 
-- `docker pull cryptax/android-re:2022.03`
-- `docker pull cryptax/dexcalibur:2021.05`
+- `docker pull cryptax/android-re:2023.07`
+- `docker pull cryptax/dexcalibur:2023.01`
 
 If you wish to *build the images locally*: `docker-compose build`. This will build both images. If you only want to build one, add its name (see `docker-compose.yml`) e.g `docker-compose build android-retools`
 
@@ -22,7 +22,7 @@ If you wish to *build the images locally*: `docker-compose build`. This will bui
 
 ## Running dexcalibur
 
-`docker run --rm --network=host -v /tmp/dexcalibur:/workshop -it cryptax/dexcalibur:2021.05 /bin/bash`
+`docker run --rm --network=host -v /tmp/dexcalibur:/workshop -it cryptax/dexcalibur:2023.01 /bin/bash`
 
 ## Running android-re or android-emu
 
@@ -96,14 +96,12 @@ The "normal" Android emulators emulate ARM architecture. If your host uses Intel
 - [frida-dexdump](https://github.com/hluwa/FRIDA-DEXDump)
 - [jadx](https://github.com/skylot/jadx)
 - [java decompiler](https://github.com/java-decompiler/jd-gui/)
-- [JEB](https://www.pnfsoftware.com) - demo version
 - [oat2dex](https://github.com/jakev/oat2dex-python)
 - [objection](https://github.com/sensepost/objection)
 - [procyon](https://github.com/mstrobel/procyon)
 - [quark](https://github.com/quark-engine/quark-engine)
 - [radare2](https://radare.org)
 - [simplify](https://github.com/CalebFenton/simplify)
-- [smalisca](https://github.com/dorneanu/smalisca)
 - [uber apk signer](https://github.com/patrickfav/uber-apk-signer)
 
 Those are open source tools, or free demos. They are installed in `/opt`.
