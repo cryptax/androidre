@@ -17,13 +17,13 @@ RUN cd /opt/jadx && ./gradlew dist
 FROM ubuntu:22.04
 
 MAINTAINER Axelle Apvrille
-ENV REFRESHED_AT 2023-07-24
+ENV REFRESHED_AT 2023-12-05
 
 ARG DEBIAN_FRONTEND=noninteractive
 ARG SSH_PASSWORD 
 ARG VNC_PASSWORD
 ENV AXMLPRINTER_VERSION "0.1.7"
-ENV APKTOOL_VERSION "2.8.0"
+ENV APKTOOL_VERSION "2.9.0"
 ENV DEX2JAR_VERSION "2.1-SNAPSHOT"
 ENV FRIDA_VERSION "16.1.3"
 ENV JD_VERSION "1.6.6"
@@ -133,6 +133,9 @@ RUN wget -q -O "/opt/jd-gui.jar" "https://github.com/java-decompiler/jd-gui/rele
 =======
 #RUN wget -q -O "/opt/jeb.zip" https://www.pnfsoftware.com/dl?jebdemo && mkdir -p /opt/jeb && unzip /opt/jeb.zip -d ./opt/jeb && rm /opt/jeb.zip
 >>>>>>> 2b694cd9427fe0c03c771e9cb27ac4ee5fdf06a3
+
+# Kavanoz
+RUN git clone https://github.com/eybisi/kavanoz.git && cd kavanoz && pip install -e . --user
 
 # Oat2Dex
 RUN wget -q -O "/opt/oat2dex.py" https://github.com/jakev/oat2dex-python/blob/master/oat2dex.py
