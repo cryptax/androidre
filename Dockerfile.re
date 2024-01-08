@@ -6,8 +6,6 @@ RUN git clone https://github.com/skylot/jadx.git
 
 FROM gradle:8.2 as build
 WORKDIR /opt
-#COPY --from=clone /opt/axmlprinter /opt/axmlprinter
-#RUN cd /opt/axmlprinter && ./gradlew jar
 #COPY --from=clone /opt/simplify /opt/simplify
 #RUN cd /opt/simplify && ./gradlew fatjar
 COPY --from=clone /opt/jadx /opt/jadx
@@ -17,7 +15,7 @@ RUN cd /opt/jadx && ./gradlew dist
 FROM ubuntu:22.04
 
 MAINTAINER Axelle Apvrille
-ENV REFRESHED_AT 2023-12-11
+ENV REFRESHED_AT 2024-01-08
 
 ARG DEBIAN_FRONTEND=noninteractive
 ARG SSH_PASSWORD 
@@ -34,6 +32,7 @@ ENV UBERAPK_VERSION "1.3.0"
 # For SSH: openssh-server ssh
 # For VNC: xvfb x11vnc xfce4 xfce4-terminal
 # For Quark engine: graphviz libbz2-dev
+# For CRC32: libarchive-zip-perl
 
 #RUN apt-get update && apt-get install -yqq default-jdk libpulse0 libxcursor1 adb python3-pip python3-dev python3-venv pkgconf pandoc curl \
 RUN apt-get update && apt-get install -yqq openjdk-8-jre openjdk-11-jre python3-pip python3-dev python3-venv pkgconf pandoc curl  locate \
@@ -42,7 +41,7 @@ RUN apt-get update && apt-get install -yqq openjdk-8-jre openjdk-11-jre python3-
     openssh-server ssh \
     xvfb x11vnc xfce4 xfce4-terminal\
     libffi-dev libssl-dev libxml2-dev libxslt1-dev libjpeg8-dev zlib1g-dev wkhtmltopdf  \
-    graphviz adb libbz2-dev file
+    graphviz adb libbz2-dev file libarchive-zip-perl
 
 RUN python3 -m pip install --upgrade pip && pip3 install wheel
 
@@ -51,9 +50,14 @@ RUN python3 -m pip install --upgrade pip && pip3 install wheel
 # Androguard
 #RUN wget -q -O "/opt/andro.zip" https://github.com/androguard/androguard/archive/v${ANDROGUARD_VERSION}.zip && unzip /opt/andro.zip -d /opt && rm -f /opt/andro.zip
 #RUN cd /opt/androguard-${ANDROGUARD_VERSION} && pip3 install .[magic,GUI] && pip3 install --upgrade 'jedi<0.18.0' && rm -r ./docs ./examples ./tests ./lib*
+RUN pip install androguard==3.4.0a1
 
 # APKiD
 RUN pip3 install apkid
+
+# Apksigtool
+RUN cd /opt && git clone https://github.com/obfusk/apksigtool
+RUN pip3 install pyasn1-modules && cd /opt/apksigtool && python3 setup.py install
 
 # Apktool
 RUN mkdir -p /opt/apktool
@@ -63,7 +67,7 @@ RUN wget -q -O "/opt/apktool/apktool.jar" https://bitbucket.org/iBotPeaches/apkt
 ENV PATH $PATH:/opt/apktool
 
 # AXMLPrinter
-RUN wget -q -O "/opt/axmlprinter.jar" https://github.com/rednaga/axmlprinter/releases/download/0.1.7/axmlprinter-${AXMLPRINTER_VERSION}.jar
+RUN wget -q -O "/opt/axmlprinter.jar" https://github.com/rednaga/axmlprinter/releases/download/${AXMLPRINTER_VERSION}/axmlprinter-${AXMLPRINTER_VERSION}.jar
 
 # Dex2Jar
 RUN wget -q -O "/opt/dex2jar.zip" https://github.com/pxb1988/dex2jar/files/1867564/dex-tools-${DEX2JAR_VERSION}.zip \
@@ -93,8 +97,11 @@ COPY --from=build /opt/jadx/build /opt/jadx/
 COPY ./setup/extract.sh /opt/extract.sh
 RUN wget -q -O "/opt/jd-gui.jar" "https://github.com/java-decompiler/jd-gui/releases/download/v${JD_VERSION}/jd-gui-${JD_VERSION}.jar" && chmod +x /opt/extract.sh
 
+# LIEF
+RUN pip install lief
+
 # Kavanoz
-RUN cd /opt && git clone https://github.com/eybisi/kavanoz && cd kavanoz && pip install -e . --user
+RUN cd /opt && git clone https://github.com/eybisi/kavanoz && cd kavanoz && python3 -m venv kavanoz-venv && . ./kavanoz-venv/bin/activate && pip install -e . && deactivate
 
 # Quark engine
 RUN pip3 install -U quark-engine
