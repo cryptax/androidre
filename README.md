@@ -1,55 +1,21 @@
 # What's this?
 
-This repository contains 3 _docker_ images for the reverse engineering of _Android_ applications.
+This repository contains 1 docker image for the reverse engineering of _Android_ applications: 
 
-1. Android RE tools: `cryptax/android-re:2023.07` (1.7 GB). This image contains reverse engineering tools.
-2. Dexcalibur: `cryptax/dexcalibur:2023.01`. Contains Dexcalibur. Particularly useful for users whose OS does not support Dexcalibur...
-3. *Obsolete and broken*: Android emulators:  `cryptax/android-emu:2021.01` (3.4 GB). This image contains the Android SDK and emulators. 
+- Android RE tools: `cryptax/android-re:2023.07` (1.7 GB). This image contains reverse engineering tools.
 
+**The other images are obsolete and/or broken**: `cryptax/dexcalibur:2023.01` and `cryptax/android-emu:2021.01`.
 
 **Disclaimer**: Please use responsibly.
 
-# Download / Install
+# Quick Setup
 
 You are expected to download those containers via `docker pull`:
 
-- `docker pull cryptax/android-re:2023.07`
-- `docker pull cryptax/dexcalibur:2023.01`
+1. `docker pull cryptax/android-re:2023.07`
+2. `docker-compose up -d android-retools`
 
-If you wish to *build the images locally*: `docker-compose build`. This will build both images. If you only want to build one, add its name (see `docker-compose.yml`) e.g `docker-compose build android-retools`
-
-# Run the containers
-
-## Running dexcalibur
-
-`docker run --rm --network=host -v /tmp/dexcalibur:/workshop -it cryptax/dexcalibur:2023.01 /bin/bash`
-
-## Running android-re or android-emu
-
-Use `docker-compose`:
-
-- Start Android RE tools container: `docker-compose up -d android-retools`
-- Start Android emulator container: `docker-compose up -d android-emulators`
-- Stop both containers: `docker-compose stop`
-- To stop only one container, same as starting it: add its name at the end of the command.
-
-
-# Using the containers
-
-Note that:
-
-- Each Docker container exports a *SSH* port and a *VNC* port.
-- The Android RE tools container exposes a port for NodeJS in addition.
-- It is useful to share a local directory with `/workshop` in the container to easily read/write files.
-
-Once the containers are up and running, you can **connect using SSH or VNC**. The default credentials are `root/mypass` but you are encouraged to **modify this** (in `docker-compose.yml`).
-
-For SSH:
-
-- Be certain to specify the **port**. For SSH, it is `ssh -p PORT`, for scp `scp -P PORT`.
-- Make sure to use **X11 Forwarding**. This is `-X` option for ssh.
-
-Example:
+Access by SSH:
 
 ```
 $ xhost +
@@ -62,28 +28,18 @@ For VNC, install a *VNC viewer*, then:
 $ vncviewer 127.0.0.1::5900
 ```
 
-# Android emulators image (`android-emu`)
+Default password is `mypass`. See `docker_compose.yml` to change it.
 
-It contains:
+# Customization
 
-- Android SDK
-- Android emulator 5.1 ARM
-- Android emulator 11 x86_64
+If you wish to *build the images locally*: `docker-compose build`. This will build both images. If you only want to build one, add its name (see `docker-compose.yml`) e.g `docker-compose build android-retools`
 
-See `~/.bashrc` for aliases to run those emulators.
-See `Dockerfile.emulators` if you wish to customize.
+Ports for SSH and VNC can be customized.
 
-## Android x86_64 emulator
-
-The "normal" Android emulators emulate ARM architecture. If your host uses Intel x86 and supports hardware virtualization instructions, you can use the Android emulator for x86, which will be **much faster**. The Dockerfile installs the necessary packages, yet, for this option to work, you must:
-
-- Have an Intel x86-64 processor on your host which supports virtualization (e.g Intel VT)
-- Launch the container with the `--privileged` option.
 
 # Android tools image (`android-re`)
 
 - [androguard](https://github.com/androguard/androguard)
-- [apkfile](https://github.com/CalebFenton/apkfile)
 - [apkid](https://github.com/rednaga/APKiD/)
 - [apkleaks](https://github.com/dwisiswant0/apkleaks)
 - [apktool](https://bitbucket.org/iBotPeaches/apktool)
@@ -91,14 +47,10 @@ The "normal" Android emulators emulate ARM architecture. If your host uses Intel
 - [baksmali / smali](https://github.com/JesusFreke/smali)
 - [dex2jar](https://github.com/pxb1988/dex2jar)
 - [droidlysis](https://github.com/cryptax/droidlysis)
-- [enjarify](https://github.com/Storyyeller/enjarify)
 - [frida](https://frida.re)
-- [frida-dexdump](https://github.com/hluwa/FRIDA-DEXDump)
 - [jadx](https://github.com/skylot/jadx)
 - [java decompiler](https://github.com/java-decompiler/jd-gui/)
-- [oat2dex](https://github.com/jakev/oat2dex-python)
-- [objection](https://github.com/sensepost/objection)
-- [procyon](https://github.com/mstrobel/procyon)
+- [kavanoz](https://github.com/eybisi/kavanoz)
 - [quark](https://github.com/quark-engine/quark-engine)
 - [radare2](https://radare.org)
 - [simplify](https://github.com/CalebFenton/simplify)
@@ -106,13 +58,42 @@ The "normal" Android emulators emulate ARM architecture. If your host uses Intel
 
 Those are open source tools, or free demos. They are installed in `/opt`.
 
+## Interesting tools to install on the host (not in the container)
 
-# Tweaks
+- [medusa](https://github.com/Ch0pin/medusa)
+- [objection](https://github.com/sensepost/objection):  `pip3 install objection`
 
-- Running a container locally (without SSH or VNC): 
+
+## Adding more tools
 
 ```
-$ docker run -it --rm -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix cryptax/android-re:latest /bin/bash
+# APKdiff
+RUN wget -q -O "/opt/apkdiffy.py" https://raw.githubusercontent.com/daniellockyer/apkdiff/master/apkdiff.py
+
+# Apkfile
+RUN cd /opt && git clone https://github.com/CalebFenton/apkfile
+
+# ByteCode Viewer
+RUN wget -q -O "/opt/bytecode-viewer.jar" "https://github.com/Konloch/bytecode-viewer/releases/download/v2.9.22/Bytecode-Viewer-${BYTECODEVIEWER_VERSION}.jar
+
+# CFR
+RUN wget -q -O "/opt/cfr_${CFR_VERSION}.jar" http://www.benf.org/other/cfr/cfr-${CFR_VERSION}.jar
+
+# ClassyShark
+RUN wget -q -O "/opt/ClassyShark.jar" https://github.com/google/android-classyshark/releases/download/${CLASSYSHARK_VERSION}/ClassyShark.jar
+
+# Enjarify
+RUN cd /opt && git clone https://github.com/Storyyeller/enjarify && ln -s /opt/enjarify/enjarify.sh /usr/bin/enjarify
+
+# Fridump
+RUN cd /opt && git clone https://github.com/Nightbringer21/fridump.git
+
+# Oat2Dex
+RUN wget -q -O "/opt/oat2dex.py" https://github.com/jakev/oat2dex-python/blob/master/oat2dex.py
+
+# Procyon (link broken, currently using an archive) - Does not work with Java 11. Works with Java 8
+RUN wget -q -O "/opt/procyon-decompiler.jar" "https://github.com/cryptax/droidlysis/raw/master/external/procyon-decompiler-${PROCYON_VERSION}.jar"
+
 ```
 
 

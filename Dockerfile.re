@@ -6,8 +6,6 @@ RUN git clone https://github.com/skylot/jadx.git
 
 FROM gradle:8.2 as build
 WORKDIR /opt
-#COPY --from=clone /opt/axmlprinter /opt/axmlprinter
-#RUN cd /opt/axmlprinter && ./gradlew jar
 #COPY --from=clone /opt/simplify /opt/simplify
 #RUN cd /opt/simplify && ./gradlew fatjar
 COPY --from=clone /opt/jadx /opt/jadx
@@ -17,17 +15,16 @@ RUN cd /opt/jadx && ./gradlew dist
 FROM ubuntu:22.04
 
 MAINTAINER Axelle Apvrille
-ENV REFRESHED_AT 2023-12-05
+ENV REFRESHED_AT 2024-01-08
 
 ARG DEBIAN_FRONTEND=noninteractive
 ARG SSH_PASSWORD 
 ARG VNC_PASSWORD
 ENV AXMLPRINTER_VERSION "0.1.7"
-ENV APKTOOL_VERSION "2.9.0"
+ENV APKTOOL_VERSION "2.9.1"
 ENV DEX2JAR_VERSION "2.1-SNAPSHOT"
-ENV FRIDA_VERSION "16.1.3"
+ENV FRIDA_VERSION "16.1.8"
 ENV JD_VERSION "1.6.6"
-ENV PROCYON_VERSION "0.5.30"
 ENV SMALI_VERSION "2.5.2"
 ENV UBERAPK_VERSION "1.3.0"
 
@@ -35,6 +32,7 @@ ENV UBERAPK_VERSION "1.3.0"
 # For SSH: openssh-server ssh
 # For VNC: xvfb x11vnc xfce4 xfce4-terminal
 # For Quark engine: graphviz libbz2-dev
+# For CRC32: libarchive-zip-perl
 
 #RUN apt-get update && apt-get install -yqq default-jdk libpulse0 libxcursor1 adb python3-pip python3-dev python3-venv pkgconf pandoc curl \
 RUN apt-get update && apt-get install -yqq openjdk-8-jre openjdk-11-jre python3-pip python3-dev python3-venv pkgconf pandoc curl  locate \
@@ -43,32 +41,23 @@ RUN apt-get update && apt-get install -yqq openjdk-8-jre openjdk-11-jre python3-
     openssh-server ssh \
     xvfb x11vnc xfce4 xfce4-terminal\
     libffi-dev libssl-dev libxml2-dev libxslt1-dev libjpeg8-dev zlib1g-dev wkhtmltopdf  \
-    graphviz adb libbz2-dev file
+    graphviz adb libbz2-dev file libarchive-zip-perl
 
 RUN python3 -m pip install --upgrade pip && pip3 install wheel
 
 # ----------------------------- RE Tools
 
-# APKdiff
-RUN wget -q -O "/opt/apkdiffy.py" https://raw.githubusercontent.com/daniellockyer/apkdiff/master/apkdiff.py
-
 # Androguard
 #RUN wget -q -O "/opt/andro.zip" https://github.com/androguard/androguard/archive/v${ANDROGUARD_VERSION}.zip && unzip /opt/andro.zip -d /opt && rm -f /opt/andro.zip
 #RUN cd /opt/androguard-${ANDROGUARD_VERSION} && pip3 install .[magic,GUI] && pip3 install --upgrade 'jedi<0.18.0' && rm -r ./docs ./examples ./tests ./lib*
-
-# Apkfile library
-#RUN cd /opt && git clone https://github.com/CalebFenton/apkfile
+RUN pip install androguard==3.4.0a1
 
 # APKiD
 RUN pip3 install apkid
-#RUN pip3 install --no-cache-dir --upgrade pip setuptools wheel && \
-#    pip3 wheel --quiet --no-cache-dir --wheel-dir=/tmp/yara-python --build-option="build" #--build-option="--enable-dex" git+https://github.com/VirusTotal/yara-python.git@v3.11.0 && \
-#    pip3 install --quiet --no-cache-dir --no-index --find-links=/tmp/yara-python yara-python && \
-#    rm -rf /tmp/yara-python && \
-#    cd /opt && git clone https://github.com/rednaga/APKiD/ && \
-#    cd /opt/APKiD && python3 prep-release.py && pip3 install -e . && \
-#    rm -rf tests docker Dockerfile
 
+# Apksigtool
+RUN cd /opt && git clone https://github.com/obfusk/apksigtool
+RUN pip3 install pyasn1-modules && cd /opt/apksigtool && python3 setup.py install
 
 # Apktool
 RUN mkdir -p /opt/apktool
@@ -78,16 +67,7 @@ RUN wget -q -O "/opt/apktool/apktool.jar" https://bitbucket.org/iBotPeaches/apkt
 ENV PATH $PATH:/opt/apktool
 
 # AXMLPrinter
-RUN wget -q -O "/opt/axmlprinter.jar" https://github.com/rednaga/axmlprinter/releases/download/0.1.7/axmlprinter-${AXMLPRINTER_VERSION}.jar
-
-# ByteCode Viewer
-#RUN wget -q -O "/opt/bytecode-viewer.jar" "https://github.com/Konloch/bytecode-viewer/releases/download/v2.9.22/Bytecode-Viewer-${BYTECODEVIEWER_VERSION}.jar"
-
-# CFR
-#RUN wget -q -O "/opt/cfr_${CFR_VERSION}.jar" http://www.benf.org/other/cfr/cfr-${CFR_VERSION}.jar
-
-# ClassyShark
-#RUN wget -q -O "/opt/ClassyShark.jar" https://github.com/google/android-classyshark/releases/download/${CLASSYSHARK_VERSION}/ClassyShark.jar
+RUN wget -q -O "/opt/axmlprinter.jar" https://github.com/rednaga/axmlprinter/releases/download/${AXMLPRINTER_VERSION}/axmlprinter-${AXMLPRINTER_VERSION}.jar
 
 # Dex2Jar
 RUN wget -q -O "/opt/dex2jar.zip" https://github.com/pxb1988/dex2jar/files/1867564/dex-tools-${DEX2JAR_VERSION}.zip \
@@ -104,47 +84,24 @@ RUN cd /opt && git clone https://github.com/cryptax/droidlysis && cd /opt/droidl
 RUN chmod u+x /opt/droidlysis/droidlysis
 RUN sed -i 's#~/softs#/opt#g' /opt/droidlysis/conf/general.conf
 
-# Enjarify
-RUN cd /opt && git clone https://github.com/Storyyeller/enjarify && ln -s /opt/enjarify/enjarify.sh /usr/bin/enjarify
-
 # Frida, Frida Server and Frida-DEXDump
 RUN pip3 install frida frida-tools frida-dexdump
 COPY ./setup/install-frida-server.sh /opt
 RUN cd /opt \
     && wget -q -O "/opt/frida-server.xz" https://github.com/frida/frida/releases/download/${FRIDA_VERSION}/frida-server-${FRIDA_VERSION}-android-arm.xz && unxz /opt/frida-server.xz && mv /opt/frida-server /opt/frida-server-android-arm && chmod u+x /opt/install-frida-server.sh
 
-# Fridump
-RUN cd /opt && git clone https://github.com/Nightbringer21/fridump.git
-
 # JADX
-#RUN wget -q -O "/opt/jadx.zip" https://github.com/skylot/jadx/releases/download/v${JADX_VERSION}/jadx-${JADX_VERSION}.zip \
-#    && mkdir -p /opt/jadx \
-#   && unzip /opt/jadx.zip -d /opt/jadx \
-#    && rm -f /opt/jadx.zip
 COPY --from=build /opt/jadx/build /opt/jadx/
 
 # JD-GUI
 COPY ./setup/extract.sh /opt/extract.sh
 RUN wget -q -O "/opt/jd-gui.jar" "https://github.com/java-decompiler/jd-gui/releases/download/v${JD_VERSION}/jd-gui-${JD_VERSION}.jar" && chmod +x /opt/extract.sh
 
-# JEB Demo - requires JDK 11
-<<<<<<< HEAD
-# RUN wget -q -O "/opt/jeb.zip" https://www.pnfsoftware.com/dl?jebdemo && mkdir -p /opt/jeb && unzip /opt/jeb.zip -d ./opt/jeb && rm /opt/jeb.zip
-=======
-#RUN wget -q -O "/opt/jeb.zip" https://www.pnfsoftware.com/dl?jebdemo && mkdir -p /opt/jeb && unzip /opt/jeb.zip -d ./opt/jeb && rm /opt/jeb.zip
->>>>>>> 2b694cd9427fe0c03c771e9cb27ac4ee5fdf06a3
+# LIEF
+RUN pip install lief
 
 # Kavanoz
-RUN git clone https://github.com/eybisi/kavanoz.git && cd kavanoz && pip install -e . --user
-
-# Oat2Dex
-RUN wget -q -O "/opt/oat2dex.py" https://github.com/jakev/oat2dex-python/blob/master/oat2dex.py
-
-# Objection
-#RUN pip3 install objection
-
-# Procyon (link broken, currently using an archive) - Does not work with Java 11. Works with Java 8
-RUN wget -q -O "/opt/procyon-decompiler.jar" "https://github.com/cryptax/droidlysis/raw/master/external/procyon-decompiler-${PROCYON_VERSION}.jar"
+RUN cd /opt && git clone https://github.com/eybisi/kavanoz && cd kavanoz && python3 -m venv kavanoz-venv && . ./kavanoz-venv/bin/activate && pip install -e . && deactivate
 
 # Quark engine
 RUN pip3 install -U quark-engine
