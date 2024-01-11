@@ -15,15 +15,15 @@ RUN cd /opt/jadx && ./gradlew dist
 FROM ubuntu:22.04
 
 MAINTAINER Axelle Apvrille
-ENV REFRESHED_AT 2024-01-08
+ENV REFRESHED_AT 2024-01-11
 
 ARG DEBIAN_FRONTEND=noninteractive
 ARG SSH_PASSWORD 
 ARG VNC_PASSWORD
 ENV AXMLPRINTER_VERSION "0.1.7"
-ENV APKTOOL_VERSION "2.9.1"
-ENV DEX2JAR_VERSION "2.2-SNAPSHOT"
-ENV FRIDA_VERSION "16.1.8"
+ENV APKTOOL_VERSION "2.9.2"
+ENV DEX2JAR_VERSION "2.4"
+ENV FRIDA_VERSION "16.1.10"
 ENV JD_VERSION "1.6.6"
 ENV SMALI_VERSION "2.5.2"
 ENV UBERAPK_VERSION "1.3.0"
@@ -70,12 +70,11 @@ ENV PATH $PATH:/opt/apktool
 RUN wget -q -O "/opt/axmlprinter.jar" https://github.com/rednaga/axmlprinter/releases/download/${AXMLPRINTER_VERSION}/axmlprinter-${AXMLPRINTER_VERSION}.jar
 
 # Dex2Jar
-RUN wget -q -O "/opt/dex2jar.zip" https://github.com/pxb1988/dex2jar/files/1867564/dex-tools-${DEX2JAR_VERSION}.zip \
-    && cd /opt \
+RUN wget -q -O "/opt/dex2jar.zip" https://github.com/pxb1988/dex2jar/releases/download/v${DEX2JAR_VERSION}/dex-tools-v${DEX2JAR_VERSION}.zip && cd /opt \
     && unzip /opt/dex2jar.zip -d . \
-    && chmod u+x /opt/dex-tools-${DEX2JAR_VERSION}/*.sh \
+    && chmod u+x /opt/dex-tools-v${DEX2JAR_VERSION}/*.sh \
     && rm -f /opt/dex2jar.zip 
-ENV PATH $PATH:/opt/dex-tools-${DEX2JAR_VERSION}:/opt/dex-tools-${DEX2JAR_VERSION}/bin
+ENV PATH $PATH:/opt/dex-tools-v${DEX2JAR_VERSION}:/opt/dex-tools-v${DEX2JAR_VERSION}/bin
 
 # Droidlysis
 ENV PATH $PATH:/root/.local/bin
@@ -84,7 +83,7 @@ RUN cd /opt && git clone https://github.com/cryptax/droidlysis && cd /opt/droidl
 RUN chmod u+x /opt/droidlysis/droidlysis
 RUN sed -i 's#~/softs#/opt#g' /opt/droidlysis/conf/general.conf
 RUN sed -i 's#apktool_*jar#apktool.jar#g' /opt/droidlysis/conf/general.conf
-RUN sed -i 's#baksmali-*jar#baksmali.jar#g' /opt/droidlysis/config/general.conf
+RUN sed -i 's#baksmali-*jar#baksmali.jar#g' /opt/droidlysis/conf/general.conf
 
 # Frida, Frida Server and Frida-DEXDump
 RUN pip3 install frida frida-tools frida-dexdump
