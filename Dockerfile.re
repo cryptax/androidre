@@ -82,8 +82,12 @@ ENV PYTHONPATH $PYTHONPATH:/opt/droidlysis
 RUN cd /opt && git clone https://github.com/cryptax/droidlysis && cd /opt/droidlysis && pip3 install --user -r requirements.txt
 RUN chmod u+x /opt/droidlysis/droidlysis
 RUN sed -i 's#~/softs#/opt#g' /opt/droidlysis/conf/general.conf
-RUN sed -i 's#apktool_*jar#apktool.jar#g' /opt/droidlysis/conf/general.conf
-RUN sed -i 's#baksmali-*jar#baksmali.jar#g' /opt/droidlysis/conf/general.conf
+RUN sed -i 's#apktool =.*jar#apktool = /opt/apktool/apktool.jar#g' /opt/droidlysis/conf/general.conf
+RUN sed -i 's#baksmali-.*jar#baksmali.jar#g' /opt/droidlysis/conf/general.conf
+RUN sed -i "s#dex2jar =.*sh#dex2jar = /opt/dex-tools-v${DEX2JAR_VERSION}/d2j-dex2jar.sh#g" /opt/droidlysis/conf/general.conf
+
+# Flutter
+RUN wget -q -O "/opt/flutter-header.py" https://raw.githubusercontent.com/cryptax/misc-code/master/flutter/flutter-header.py
 
 # Frida, Frida Server and Frida-DEXDump
 RUN pip3 install frida frida-tools frida-dexdump
