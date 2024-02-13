@@ -2,17 +2,15 @@
 
 This repository contains 1 docker image for the reverse engineering of _Android_ applications: 
 
-- Android RE tools: `cryptax/android-re:2023.07` (1.7 GB). This image contains reverse engineering tools.
-
-**The other images are obsolete and/or broken**: `cryptax/dexcalibur:2023.01` and `cryptax/android-emu:2021.01`.
+- Android RE tools: `cryptax/android-re:2024.02` (1.7 GB). This image contains reverse engineering tools.
 
 **Disclaimer**: Please use responsibly.
 
 # Quick Setup
 
-You are expected to download those containers via `docker pull`:
+On an AMD64 platform, you can pull the container via `docker pull`:
 
-1. `docker pull cryptax/android-re:2023.07`
+1. `docker pull cryptax/android-re:2024.02`
 2. `docker-compose up -d android-retools`
 
 Access by SSH:
@@ -30,11 +28,27 @@ $ vncviewer 127.0.0.1::5900
 
 Default password is `mypass`. See `docker_compose.yml` to change it.
 
-# Customization
+# Build / Customization
 
-If you wish to *build the images locally*: `docker-compose build`. This will build both images. If you only want to build one, add its name (see `docker-compose.yml`) e.g `docker-compose build android-retools`
+If you wish to *build the images locally*: `docker-compose build`. 
 
-Ports for SSH and VNC can be customized.
+You can customize:
+
+- Ports for SSH and VNC
+
+```
+    ports:
+      - "6022:22"
+      - "6900:5900"
+```
+
+- Password for SSH and VNC
+
+```
+      args:
+        - SSH_PASSWORD=mypass
+        - VNC_PASSWORD=mypass
+```
 
 
 # Android tools image (`android-re`)
@@ -53,7 +67,6 @@ Ports for SSH and VNC can be customized.
 - [kavanoz](https://github.com/eybisi/kavanoz)
 - [quark](https://github.com/quark-engine/quark-engine)
 - [radare2](https://radare.org)
-- [simplify](https://github.com/CalebFenton/simplify)
 - [uber apk signer](https://github.com/patrickfav/uber-apk-signer)
 
 Those are open source tools, or free demos. They are installed in `/opt`.
@@ -63,6 +76,9 @@ Those are open source tools, or free demos. They are installed in `/opt`.
 - [medusa](https://github.com/Ch0pin/medusa)
 - [objection](https://github.com/sensepost/objection):  `pip3 install objection`
 
+## Obsolete / Broken
+
+**The other images are obsolete and/or broken**: `cryptax/dexcalibur:2023.01` and `cryptax/android-emu:2021.01`.
 
 ## Adding more tools
 
@@ -95,12 +111,4 @@ RUN wget -q -O "/opt/oat2dex.py" https://github.com/jakev/oat2dex-python/blob/ma
 RUN wget -q -O "/opt/procyon-decompiler.jar" "https://github.com/cryptax/droidlysis/raw/master/external/procyon-decompiler-${PROCYON_VERSION}.jar"
 
 ```
-
-
-# Workshops
-
-Previous versions of this docker image has been used in several workshops (Hack.lu, Insomnihack, Nuit du Hack, GreHack).
-
-Workshop *samples* are provided to participants by other means.
-This image **does not provide any Android sample**.
 

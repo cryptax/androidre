@@ -6,8 +6,6 @@ RUN git clone https://github.com/skylot/jadx.git
 
 FROM gradle:8.2 as build
 WORKDIR /opt
-#COPY --from=clone /opt/simplify /opt/simplify
-#RUN cd /opt/simplify && ./gradlew fatjar
 COPY --from=clone /opt/jadx /opt/jadx
 RUN cd /opt/jadx && ./gradlew dist
 
@@ -15,13 +13,13 @@ RUN cd /opt/jadx && ./gradlew dist
 FROM ubuntu:22.04
 
 MAINTAINER Axelle Apvrille
-ENV REFRESHED_AT 2024-01-25
+ENV REFRESHED_AT 2024-02-13
 
 ARG DEBIAN_FRONTEND=noninteractive
 ARG SSH_PASSWORD 
 ARG VNC_PASSWORD
 ENV AXMLPRINTER_VERSION "0.1.7"
-ENV APKTOOL_VERSION "2.9.2"
+ENV APKTOOL_VERSION "2.9.3"
 ENV DEX2JAR_VERSION "2.4"
 ENV FRIDA_VERSION "16.1.11"
 ENV JD_VERSION "1.6.6"
@@ -33,6 +31,7 @@ ENV UBERAPK_VERSION "1.3.0"
 # For VNC: xvfb x11vnc xfce4 xfce4-terminal
 # For Quark engine: graphviz libbz2-dev
 # For CRC32: libarchive-zip-perl
+# For Kavanoz: cmake
 
 #RUN apt-get update && apt-get install -yqq default-jdk libpulse0 libxcursor1 adb python3-pip python3-dev python3-venv pkgconf pandoc curl \
 RUN apt-get update && apt-get install -yqq openjdk-8-jre openjdk-11-jre python3-pip python3-dev python3-venv pkgconf pandoc curl  locate \
@@ -41,7 +40,7 @@ RUN apt-get update && apt-get install -yqq openjdk-8-jre openjdk-11-jre python3-
     openssh-server ssh \
     xvfb x11vnc xfce4 xfce4-terminal\
     libffi-dev libssl-dev libxml2-dev libxslt1-dev libjpeg8-dev zlib1g-dev wkhtmltopdf  \
-    graphviz adb libbz2-dev file libarchive-zip-perl
+    graphviz adb libbz2-dev file libarchive-zip-perl cmake
 
 RUN python3 -m pip install --upgrade pip && pip3 install wheel
 
@@ -53,7 +52,11 @@ RUN python3 -m pip install --upgrade pip && pip3 install wheel
 RUN pip install androguard==3.4.0a1
 
 # APKiD
-RUN pip3 install apkid
+# yara-python-dex (required for apkid)
+RUN pip wheel --wheel-dir=yara-python-dex git+https://github.com/MobSF/yara-python-dex.git \
+ && pip install --no-index --find-links=yara-python-dex yara-python-dex \
+ && rm -rf yara-python-dex
+RUN pip3 install --no-cache-dir apkid
 
 # Apksigtool
 RUN cd /opt && git clone https://github.com/obfusk/apksigtool
@@ -119,9 +122,6 @@ RUN /opt/radare2/sys/user.sh
 #RUN curl -sL https://deb.nodesource.com/setup_16.x | bash -
 #RUN apt-get install -yqq nodejs
 #RUN ~/bin/r2pm init && ~/bin/r2pm update && ~/bin/r2pm install r2frida && pip3 install r2pipe
-
-# Simplify
-#COPY --from=build /opt/simplify/simplify/build/libs/*.jar /opt/simplify/
 
 # Install Smali / Baksmali
 RUN wget -q -O "/opt/smali.jar" "https://bitbucket.org/JesusFreke/smali/downloads/smali-${SMALI_VERSION}.jar"
