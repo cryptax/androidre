@@ -1,5 +1,4 @@
 ---
-version: "3"
 services:
   android-retools:
     build:
@@ -8,7 +7,7 @@ services:
       args:
         - SSH_PASSWORD=mypass
         - VNC_PASSWORD=mypass
-    image: cryptax/android-re:2024.02
+    image: cryptax/android-re:2025.11
     container_name: android-retools
     ports:
       - "6022:22"

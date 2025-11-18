@@ -11,13 +11,13 @@ This repository contains 1 docker image for the reverse engineering of _Android_
 On an AMD64 platform, you can pull the container via `docker pull`:
 
 1. `docker pull cryptax/android-re:2024.02`
-2. `docker-compose up -d android-retools`
+2. `docker compose up -d android-retools`
 
 Access by SSH:
 
 ```
 $ xhost +
-$ ssh -p 5022 -X root@127.0.0.1
+$ ssh -p 6022 -X root@127.0.0.1
 ```
 
 For VNC, install a *VNC viewer*, then:

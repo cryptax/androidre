@@ -1,27 +1,26 @@
 # ------------------------- A few multi stage builds to save MB (but not that much compared to the rest... :( )
-FROM alpine/git as clone
+FROM alpine/git AS clone
 WORKDIR /opt
 RUN git clone --recursive https://github.com/CalebFenton/simplify
 RUN git clone https://github.com/skylot/jadx.git
 
-FROM gradle:8.2 as build
+FROM gradle:8.2 AS build
 WORKDIR /opt
 COPY --from=clone /opt/jadx /opt/jadx
 RUN cd /opt/jadx && ./gradlew dist
 
 # ------------------------- Android Reverse Engineering environment image
-FROM ubuntu:22.04
+FROM ubuntu:24.04
 
-MAINTAINER Axelle Apvrille
-ENV REFRESHED_AT 2024-02-13
+ENV REFRESHED_AT 2025-11-18
 
 ARG DEBIAN_FRONTEND=noninteractive
 ARG SSH_PASSWORD 
 ARG VNC_PASSWORD
 ENV AXMLPRINTER_VERSION "0.1.7"
-ENV APKTOOL_VERSION "2.9.3"
+ENV APKTOOL_VERSION "2.12.1"
 ENV DEX2JAR_VERSION "2.4"
-ENV FRIDA_VERSION "16.1.11"
+ENV FRIDA_VERSION "17.5.1"
 ENV JD_VERSION "1.6.6"
 ENV SMALI_VERSION "2.5.2"
 ENV UBERAPK_VERSION "1.3.0"
@@ -42,31 +41,37 @@ RUN apt-get update && apt-get install -yqq openjdk-8-jre openjdk-11-jre python3-
     libffi-dev libssl-dev libxml2-dev libxslt1-dev libjpeg8-dev zlib1g-dev wkhtmltopdf  \
     graphviz adb libbz2-dev file libarchive-zip-perl cmake
 
-RUN python3 -m pip install --upgrade pip && pip3 install wheel
+# ----------------------------- Python Venv
+ENV VENV_DIR=/opt/venv
+RUN python3 -m venv $VENV_DIR && \
+    . $VENV_DIR/bin/activate && \
+    python3 -m pip install --upgrade pip && \
+    pip3 install wheel
+RUN echo "source ${VENV_DIR}/bin/activate" >> /root/.bashrc
 
 # ----------------------------- RE Tools
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 # Androguard
 #RUN wget -q -O "/opt/andro.zip" https://github.com/androguard/androguard/archive/v${ANDROGUARD_VERSION}.zip && unzip /opt/andro.zip -d /opt && rm -f /opt/andro.zip
 #RUN cd /opt/androguard-${ANDROGUARD_VERSION} && pip3 install .[magic,GUI] && pip3 install --upgrade 'jedi<0.18.0' && rm -r ./docs ./examples ./tests ./lib*
-RUN pip install androguard==3.4.0a1
+RUN . $VENV_DIR/bin/activate && pip install androguard==3.4.0a1
 
 # APKiD
 # yara-python-dex (required for apkid)
-RUN pip wheel --wheel-dir=yara-python-dex git+https://github.com/MobSF/yara-python-dex.git \
+RUN . $VENV_DIR/bin/activate && pip wheel --wheel-dir=yara-python-dex git+https://github.com/MobSF/yara-python-dex.git \
  && pip install --no-index --find-links=yara-python-dex yara-python-dex \
  && rm -rf yara-python-dex
-RUN pip3 install --no-cache-dir apkid
+RUN . $VENV_DIR/bin/activate && pip3 install --no-cache-dir apkid
 
 # Apksigtool
-RUN cd /opt && git clone https://github.com/obfusk/apksigtool
-RUN pip3 install pyasn1-modules && cd /opt/apksigtool && python3 setup.py install
+#RUN cd /opt && git clone https://github.com/obfusk/apksigtool
+#RUN . $VENV_DIR/bin/activate && pip3 install pyasn1-modules && cd /opt/apksigtool && python3 setup.py install
 
 # Apktool
 RUN mkdir -p /opt/apktool
 RUN wget -q -O "/opt/apktool/apktool" https://raw.githubusercontent.com/iBotPeaches/Apktool/master/scripts/linux/apktool
-RUN wget -q -O "/opt/apktool/apktool.jar" https://bitbucket.org/iBotPeaches/apktool/downloads/apktool_$APKTOOL_VERSION.jar \
-    && chmod u+x /opt/apktool/apktool /opt/apktool/apktool.jar
+RUN wget -q -O "/opt/apktool/apktool.jar" https://bitbucket.org/iBotPeaches/apktool/downloads/apktool_$APKTOOL_VERSION.jar && chmod u+x /opt/apktool/apktool /opt/apktool/apktool.jar
 ENV PATH $PATH:/opt/apktool
 
 # AXMLPrinter
@@ -82,7 +87,11 @@ ENV PATH $PATH:/opt/dex-tools-v${DEX2JAR_VERSION}:/opt/dex-tools-v${DEX2JAR_VERS
 # Droidlysis
 ENV PATH $PATH:/root/.local/bin
 ENV PYTHONPATH $PYTHONPATH:/opt/droidlysis
-RUN cd /opt && git clone https://github.com/cryptax/droidlysis && cd /opt/droidlysis && pip3 install --user -r requirements.txt
+RUN cd /opt && \
+    git clone https://github.com/cryptax/droidlysis && \
+    cd /opt/droidlysis && \
+    source $VENV_DIR/bin/activate && \
+    pip3 install -r requirements.txt
 RUN chmod u+x /opt/droidlysis/droidlysis
 RUN sed -i 's#~/softs#/opt#g' /opt/droidlysis/conf/general.conf
 RUN sed -i 's#apktool =.*jar#apktool = /opt/apktool/apktool.jar#g' /opt/droidlysis/conf/general.conf
@@ -93,7 +102,7 @@ RUN sed -i "s#dex2jar =.*sh#dex2jar = /opt/dex-tools-v${DEX2JAR_VERSION}/d2j-dex
 RUN wget -q -O "/opt/flutter-header.py" https://raw.githubusercontent.com/cryptax/misc-code/master/flutter/flutter-header.py
 
 # Frida, Frida Server and Frida-DEXDump
-RUN pip3 install frida frida-tools frida-dexdump
+RUN . $VENV_DIR/bin/activate && pip3 install frida frida-tools frida-dexdump
 COPY ./setup/install-frida-server.sh /opt
 RUN cd /opt \
     && wget -q -O "/opt/frida-server.xz" https://github.com/frida/frida/releases/download/${FRIDA_VERSION}/frida-server-${FRIDA_VERSION}-android-arm.xz && unxz /opt/frida-server.xz && mv /opt/frida-server /opt/frida-server-android-arm && chmod u+x /opt/install-frida-server.sh
@@ -106,17 +115,18 @@ COPY ./setup/extract.sh /opt/extract.sh
 RUN wget -q -O "/opt/jd-gui.jar" "https://github.com/java-decompiler/jd-gui/releases/download/v${JD_VERSION}/jd-gui-${JD_VERSION}.jar" && chmod +x /opt/extract.sh
 
 # LIEF
-RUN pip install lief
+RUN . $VENV_DIR/bin/activate && pip install lief
 
 # Kavanoz
-RUN cd /opt && git clone https://github.com/eybisi/kavanoz && cd kavanoz && python3 -m venv kavanoz-venv && . ./kavanoz-venv/bin/activate && pip install -e . && deactivate
+RUN cd /opt && git clone https://github.com/eybisi/kavanoz && cd kavanoz && . $VENV_DIR/bin/activate && pip install -e . && deactivate
 
 # Quark engine
-RUN pip3 install -U quark-engine
+RUN . $VENV_DIR/bin/activate && pip3 install -U quark-engine
 
 # Radare2
 RUN cd /opt && git clone https://github.com/radare/radare2 
 RUN /opt/radare2/sys/user.sh
+RUN r2pm -U && r2pm -ci r2ai r2mcp decai
 
 # NodeJS is required for r2frida
 #RUN curl -sL https://deb.nodesource.com/setup_16.x | bash -
@@ -134,12 +144,12 @@ ENV PATH $PATH:/opt
 RUN wget -q -O "/opt/uber-apk-signer.jar" https://github.com/patrickfav/uber-apk-signer/releases/download/v${UBERAPK_VERSION}/uber-apk-signer-${UBERAPK_VERSION}.jar
 
 # apkleaks
-RUN pip3 install apkleaks
+RUN . $VENV_DIR/bin/activate && pip3 install apkleaks
 # apkleaks requires jadx to be on the path
 ENV PATH $PATH:/opt/jadx/jadx/bin
 
 # pyaxml parser which will install a commandline apkinfo to quickly display info about APK
-RUN pip3 install pyaxmlparser
+RUN . $VENV_DIR/bin/activate && pip3 install pyaxmlparser
 
 
 # ------------------------ Install SSH access ---------------------------------------------
@@ -157,7 +167,7 @@ RUN mkdir ~/.vnc \
      && chmod u+x /root/startXvfb.sh
 
 
-# # We need supervisor to launch SSH and VNC
+# We need supervisor to launch SSH and VNC
 RUN mkdir -p /var/log/supervisor
 COPY ./setup/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
