@@ -16,18 +16,29 @@ RUN apt-get update && apt-get install -yqq openjdk-${JDK_VERSION}-jdk libpulse0 
     iptables iputils-ping \
     libxml2-dev libxslt-dev \
     openssh-server ssh \
-    xvfb x11vnc xfce4 
+    xvfb x11vnc xfce4 dbus-x11 xauth x11-utils \
+    libgl1 libegl1 libnss3 libxcomposite1 libxdamage1 libxrandr2 libxi6 libxtst6 \
+    libx11-xcb1 libxcb-cursor0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 \
+    libxcb-render-util0 libxcb-xinerama0 libxcb-xkb1 libxkbcommon-x11-0 
 
 # --------------------- Android SDK and emulators
 ENV ANDROID_SDK_ROOT /opt/android-sdk
-RUN mkdir -p ${ANDROID_SDK_ROOT} && wget -q -O "/opt/android-sdk/tools-linux.zip" https://dl.google.com/android/repository/commandlinetools-linux-${ANDROID_SDK_VERSION}_latest.zip && unzip /opt/android-sdk/tools-linux.zip -d $ANDROID_SDK_ROOT && rm -f  /opt/android-sdk/tools-linux.zip && cd ${ANDROID_SDK_ROOT}/cmdline-tools && mkdir -p tools/latest && mv bin/* ./tools/latest && mv lib/ tools && rmdir bin
-ENV PATH $PATH:${ANDROID_SDK_ROOT}/cmdline-tools/tools/latest
-RUN echo y | sdkmanager --update
-RUN yes |  sdkmanager --licenses
-RUN echo "yes" | sdkmanager "emulator" \
-    "tools" \
+# Keep bin and lib together: sdkmanager resolves its Java classes relative to bin.
+RUN mkdir -p ${ANDROID_SDK_ROOT}/cmdline-tools \
+    && wget -q -O /tmp/tools-linux.zip https://dl.google.com/android/repository/commandlinetools-linux-${ANDROID_SDK_VERSION}_latest.zip \
+    && unzip -q /tmp/tools-linux.zip -d /tmp/android-cli \
+    && mv /tmp/android-cli/cmdline-tools ${ANDROID_SDK_ROOT}/cmdline-tools/latest \
+    && rm -rf /tmp/tools-linux.zip /tmp/android-cli
+# Keep the Java-8-compatible tools instead of updating them to a newer Java requirement.
+# Put the wrapper ahead of the real emulator, including in non-interactive SSH sessions.
+ENV PATH=/usr/local/bin:${ANDROID_SDK_ROOT}/platform-tools:${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin:${PATH}
+RUN sdkmanager --version
+RUN yes | sdkmanager --licenses
+# SDK command-line tools are installed above; do not request the legacy "tools" package.
+# Use stable build-tools while keeping the Android 22 and 30 platforms/system images.
+RUN yes | sdkmanager "emulator" \
     "platform-tools" \
-    "build-tools;31.0.0-rc1" \
+    "build-tools;31.0.0" \
     "platforms;android-22" \
     "platforms;android-30" \
     "system-images;android-22;google_apis;armeabi-v7a" \
@@ -35,7 +46,30 @@ RUN echo "yes" | sdkmanager "emulator" \
 
 RUN echo "no" | avdmanager create avd -n "Android51" -k "system-images;android-22;google_apis;armeabi-v7a"
 RUN echo "no" | avdmanager create avd -n "Android11_x86_64" -k "system-images;android-30;google_apis;x86_64"
-ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:${ANDROID_SDK_ROOT}/emulator/lib64:${ANDROID_SDK_ROOT}/emulator/lib64/qt/lib
+
+# Android 11 AVD needs enough RAM and software GPU rendering (see report.md)
+RUN CONFIG=/root/.android/avd/Android11_x86_64.avd/config.ini && \
+    sed -i -E \
+        -e 's/^hw\.ramSize[[:space:]]*=.*/hw.ramSize = 2048/' \
+        -e 's/^hw\.gpu\.enabled[[:space:]]*=.*/hw.gpu.enabled = yes/' \
+        -e 's/^hw\.gpu\.mode[[:space:]]*=.*/hw.gpu.mode = swiftshader_indirect/' \
+        -e 's/^fastboot\.forceColdBoot[[:space:]]*=.*/fastboot.forceColdBoot = yes/' \
+        -e 's/^fastboot\.forceFastBoot[[:space:]]*=.*/fastboot.forceFastBoot = no/' \
+        "$CONFIG" && \
+    for setting in \
+        "hw.ramSize = 2048" \
+        "hw.gpu.enabled = yes" \
+        "hw.gpu.mode = swiftshader_indirect" \
+        "fastboot.forceColdBoot = yes" \
+        "fastboot.forceFastBoot = no"; do \
+        key=${setting%% *}; \
+        grep -q "^${key}[[:space:]]*=" "$CONFIG" || echo "$setting" >> "$CONFIG"; \
+    done
+
+# Do not inject emulator Qt libraries into sshd, XFCE, or other system programs.
+# The emulator loads its own bundled libraries.
+RUN ${ANDROID_SDK_ROOT}/emulator/emulator -version \
+    && ${ANDROID_SDK_ROOT}/emulator/emulator -list-avds | grep -Fx Android11_x86_64
 
 # for the "root without --no-sandbox" bug
 ENV QTWEBENGINE_DISABLE_SANDBOX 1
@@ -44,16 +78,38 @@ ENV QTWEBENGINE_DISABLE_SANDBOX 1
 ENV FRIDA_SERVER frida-server-14.2.13-android-x86_64.xz
 RUN apt install -yqq curl dirmngr apt-transport-https lsb-release ca-certificates \
         python3-pip python	
-RUN curl -fsSL https://deb.nodesource.com/setup_12.x | bash -
-RUN apt install nodejs
-RUN pip3 install frida-tools
-RUN npm install -g npm && npm install -g dexcalibur
+# NodeSource's Node 12 repository no longer validates (expired/rotated GPG key).
+# Install the same old Node.js 12 runtime directly instead of upgrading to a
+# newer Node release.
+RUN wget -q -O /tmp/node.tar.gz https://nodejs.org/dist/v12.22.12/node-v12.22.12-linux-x64.tar.gz \
+    && tar -xzf /tmp/node.tar.gz -C /usr/local --strip-components=1 \
+    && rm -f /tmp/node.tar.gz \
+    && node --version && npm --version
+# Keep the Python client in sync with the bundled frida-server. Recent frida
+# releases use Python 3.9+ syntax and fail on this image's Python 3.8.
+# frida 14.2.13 no longer downloads its prebuilt extension because PyPI
+# removed the XML-RPC API, so provide the egg from the expected location.
+RUN wget -q -O /root/frida-14.2.13-py3.8-linux-x86_64.egg \
+        https://files.pythonhosted.org/packages/c2/e5/ef5a6aeff25b6f449b09336cdf957af8fb028dc5d614fb4c084c99f12224/frida-14.2.13-py3.8-linux-x86_64.egg \
+    && echo "680a131f0757486a16148a636f147d153c93cf2b710a22a5491534f1707878ca  /root/frida-14.2.13-py3.8-linux-x86_64.egg" | sha256sum -c - \
+    && pip3 install frida==14.2.13 frida-tools==9.2.2 \
+    && python3 -c 'import frida; assert frida.__version__ == "14.2.13"' \
+    && frida --version \
+    && rm -f /root/frida-14.2.13-py3.8-linux-x86_64.egg
+# npm 12 requires Node 22+, while this image intentionally keeps Node 12.
+# Stay on the old npm 6 release: npm 7+ runs lifecycle scripts as the owner
+# of the package directory, which breaks frida's prebuild install as root.
+# Resolve dexcalibur's dependencies as they were when this image was written
+# so that packages such as frida stay compatible with the old Node runtime.
+RUN npm install -g npm@6.14.18 \
+    && npm install -g --unsafe-perm dexcalibur@0.7.6 --before=2021-02-23
 RUN mkdir -p /workshop && wget -q -O /workshop/${FRIDA_SERVER} https://github.com/frida/frida/releases/download/14.2.13/${FRIDA_SERVER} && cd /workshop && unxz ${FRIDA_SERVER}
 
 # ------------------------ Install SSH access ---------------------------------------------
 RUN mkdir /var/run/sshd \
     && echo "root:${SSH_PASSWORD}" | chpasswd \
     && echo "PermitRootLogin yes" >> /etc/ssh/sshd_config \
+    && echo "X11Forwarding yes" >> /etc/ssh/sshd_config \
     && echo "X11UseLocalhost no" >> /etc/ssh/sshd_config \
     && sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
 # SSH login fix. Otherwise user is kicked off after login
@@ -68,12 +124,36 @@ RUN mkdir ~/.vnc \
 RUN mkdir -p /var/log/supervisor
 COPY ./setup/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
+# Install the fixed emulator launcher (see report.md).
+# This is a small shell script, not the emulator binary itself: the real
+# binary is installed by sdkmanager at /opt/android-sdk/emulator/emulator.
+COPY ./emulator-launcher.sh /usr/local/bin/emulator
+RUN chmod +x /usr/local/bin/emulator
+
 RUN echo "export PATH=$PATH" >> /etc/profile \
-     && echo "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH" >> /etc/profile \
      && echo "export QTWEBENGINE_DISABLE_SANDBOX=1" >> /etc/profile
 RUN echo "alias emulator5='/opt/android-sdk/emulator/emulator -avd Android51 -no-audio -partition-size 512 -no-boot-anim'" >> /root/.bashrc \
-    && echo "alias emulator='/opt/android-sdk/tools/emulator -avd Android11_x86_64 -no-audio -no-boot-anim'" >> /root/.bashrc \
+    && echo "alias emulator='/usr/local/bin/emulator'" >> /root/.bashrc \
     && echo "export LC_ALL=C" >> /root/.bashrc
+
+# Keep the rendering stack used by the original working Android 11 image.
+# sdkmanager's unversioned "emulator" package otherwise changes on every build.
+ARG EMULATOR_BUILD=7033400
+ARG EMULATOR_SHA256=20591954ccbace3fff012c3e3978e97357b0bbd24fd4c3ba6a078be5d0b34b1d
+RUN wget -q -O /tmp/emulator.zip https://dl.google.com/android/repository/emulator-linux_x64-${EMULATOR_BUILD}.zip \
+    && echo "${EMULATOR_SHA256}  /tmp/emulator.zip" | sha256sum -c - \
+    && rm -rf ${ANDROID_SDK_ROOT}/emulator \
+    && unzip -q /tmp/emulator.zip -d ${ANDROID_SDK_ROOT} \
+    && rm /tmp/emulator.zip \
+    && ${ANDROID_SDK_ROOT}/emulator/emulator -version
+
+# Qt and SwiftShader each have an independent MIT-SHM path. SwiftShader's
+# capability probe must also be disabled for SSH/container IPC boundaries.
+COPY ./setup/emulator-no-mitshm.c /tmp/emulator-no-mitshm.c
+RUN mkdir -p /usr/local/lib/emulator-x11 \
+    && cc -shared -fPIC -Wall -Wextra /tmp/emulator-no-mitshm.c -ldl \
+       -o /usr/local/lib/emulator-x11/no-mitshm.so \
+    && rm /tmp/emulator-no-mitshm.c
 
 # ------------------------- Clean up
 
@@ -83,7 +163,8 @@ RUN apt-get clean && apt-get autoclean && apt-get autoremove -y && \
 # ------------------------- Final matter
 
 WORKDIR /workshop
-VOLUME ["/data"] # to be used for instance to pass along samples
+# Use /data to pass along samples.
+VOLUME ["/data"]
 CMD [ "/usr/bin/supervisord", "-c",  "/etc/supervisor/conf.d/supervisord.conf" ]
 
 EXPOSE 5554

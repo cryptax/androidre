@@ -1,0 +1,17 @@
+---
+services:
+  android-docker:
+    build:
+      context: .
+      dockerfile: Dockerfile.emulators
+      args:
+        - SSH_PASSWORD=mypass
+        - VNC_PASSWORD=mypass
+    image: cryptax/android-emu:2026.11
+    container_name: android-docker
+    privileged: true
+    devices:
+      - /dev/kvm:/dev/kvm
+    ports:
+      - "5022:22"
+      - "5900:5900"
