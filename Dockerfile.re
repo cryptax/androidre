@@ -181,7 +181,8 @@ RUN apt remove --purge -y pandoc && \
     rm -rf /var/lib/apt/lists/* /tmp/* /usr/share/doc/* > /dev/null 2>&1
 
 # ------------------------- Final matter
-VOLUME ["/data"] # to be used for instance to pass along samples
+# /data: to be used for instance to pass along samples
+VOLUME ["/data"]
 CMD [ "/usr/bin/supervisord", "-c",  "/etc/supervisor/conf.d/supervisord.conf" ]
 WORKDIR /workshop
 
