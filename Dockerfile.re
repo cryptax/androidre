@@ -1,7 +1,6 @@
 # ------------------------- A few multi stage builds to save MB (but not that much compared to the rest... :( )
 FROM alpine/git AS clone
 WORKDIR /opt
-RUN git clone --recursive https://github.com/CalebFenton/simplify
 RUN git clone https://github.com/skylot/jadx.git
 
 FROM gradle:8.11 AS build
@@ -10,17 +9,17 @@ COPY --from=clone /opt/jadx /opt/jadx
 RUN cd /opt/jadx && ./gradlew dist
 
 # ------------------------- Android Reverse Engineering environment image
-FROM ubuntu:24.04
+FROM ubuntu:26.04
 
-ENV REFRESHED_AT 2026-05-03
+ENV REFRESHED_AT 2026-11-10
 
 ARG DEBIAN_FRONTEND=noninteractive
 ARG SSH_PASSWORD 
 ARG VNC_PASSWORD
 ENV AXMLPRINTER_VERSION "2.0.1"
-ENV APKTOOL_VERSION "2.12.1"
+ENV APKTOOL_VERSION "3.0.3"
 ENV DEX2JAR_VERSION "2.4"
-ENV FRIDA_VERSION "17.9.5"
+ENV FRIDA_VERSION "17.26.2"
 ENV JD_VERSION "1.6.6"
 ENV SMALI_VERSION "3.0.9"
 ENV UBERAPK_VERSION "1.3.0"
@@ -35,10 +34,10 @@ ENV UBERAPK_VERSION "1.3.0"
 #RUN apt-get update && apt-get install -yqq default-jdk libpulse0 libxcursor1 adb python3-pip python3-dev python3-venv pkgconf pandoc curl \
 RUN apt-get update && apt-get install -yqq openjdk-8-jre openjdk-11-jre python3-pip python3-dev python3-venv pkgconf pandoc curl  locate \
     git build-essential tree wget unzip zip emacs vim supervisor \
-    libxml2-dev libxslt-dev libmagic-dev \
+    libxml2-dev libxslt1-dev libmagic-dev \
     openssh-server ssh \
     xvfb x11vnc xfce4 xfce4-terminal\
-    libffi-dev libssl-dev libxml2-dev libxslt1-dev libjpeg8-dev zlib1g-dev wkhtmltopdf  \
+    libffi-dev libssl-dev libjpeg8-dev zlib1g-dev  \
     graphviz adb libbz2-dev file libarchive-zip-perl cmake
 
 # ----------------------------- Python Venv
@@ -71,7 +70,7 @@ RUN . $VENV_DIR/bin/activate && pip3 install --no-cache-dir apkid
 # Apktool
 RUN mkdir -p /opt/apktool
 RUN wget -q -O "/opt/apktool/apktool" https://raw.githubusercontent.com/iBotPeaches/Apktool/master/scripts/linux/apktool
-RUN wget -q -O "/opt/apktool/apktool.jar" https://github.com/iBotPeaches/Apktool/releases/download/v$APKTOOL_VERSION/apktool_$APKTOOL_VERSION.jar && chmod u+x /opt/apktool/apktool /opt/apktool/apktool.jar
+RUN wget -q -O "/opt/apktool/apktool.jar" https://bitbucket.org/iBotPeaches/apktool/downloads/apktool_$APKTOOL_VERSION.jar && chmod u+x /opt/apktool/apktool /opt/apktool/apktool.jar
 ENV PATH $PATH:/opt/apktool
 
 # AXMLPrinter
@@ -102,13 +101,14 @@ RUN sed -i "s#dex2jar =.*sh#dex2jar = /opt/dex-tools-v${DEX2JAR_VERSION}/d2j-dex
 RUN wget -q -O "/opt/flutter-header.py" https://raw.githubusercontent.com/cryptax/misc-code/master/flutter/flutter-header.py
 
 # Frida, Frida Server and Frida-DEXDump
-RUN . $VENV_DIR/bin/activate && pip3 install frida frida-tools frida-dexdump
+RUN . $VENV_DIR/bin/activate && pip3 install frida==${FRIDA_VERSION} frida-tools frida-dexdump
 COPY ./setup/install-frida-server.sh /opt
 RUN cd /opt \
     && wget -q -O "/opt/frida-server.xz" https://github.com/frida/frida/releases/download/${FRIDA_VERSION}/frida-server-${FRIDA_VERSION}-android-arm.xz && unxz /opt/frida-server.xz && mv /opt/frida-server /opt/frida-server-android-arm && chmod u+x /opt/install-frida-server.sh
 
 # JADX
-COPY --from=build /opt/jadx/build /opt/jadx/
+COPY --from=build /opt/jadx/build/jadx-*.zip /opt/jadx/
+RUN cd /opt/jadx && unzip -o -q jadx-*.zip && rm -f jadx-*.zip
 
 # JD-GUI
 COPY ./setup/extract.sh /opt/extract.sh
@@ -126,7 +126,9 @@ RUN . $VENV_DIR/bin/activate && pip3 install -U quark-engine
 # Radare2
 RUN cd /opt && git clone https://github.com/radare/radare2 
 RUN /opt/radare2/sys/user.sh
-RUN r2pm -U && r2pm -ci r2ai r2mcp decai
+RUN r2pm -U
+RUN r2pm -ci r2ai r2mcp
+RUN r2pm -ci r2flutter r2hermes r2unity
 
 # NodeJS is required for r2frida
 #RUN curl -sL https://deb.nodesource.com/setup_16.x | bash -
@@ -144,15 +146,14 @@ RUN wget -q -O "/opt/uber-apk-signer.jar" https://github.com/patrickfav/uber-apk
 # apkleaks
 RUN . $VENV_DIR/bin/activate && pip3 install apkleaks
 # apkleaks requires jadx to be on the path
-ENV PATH $PATH:/opt/jadx/jadx/bin
+ENV PATH $PATH:/opt/jadx/bin
 
 # pyaxml parser which will install a commandline apkinfo to quickly display info about APK
 RUN . $VENV_DIR/bin/activate && pip3 install pyaxmlparser
 
 
 # ------------------------ Install SSH access ---------------------------------------------
- RUN mkdir /var/run/sshd \
-     && echo "root:${SSH_PASSWORD}" | chpasswd \
+ RUN echo "root:${SSH_PASSWORD}" | chpasswd \
      && echo "PermitRootLogin yes" >> /etc/ssh/sshd_config \
      && echo "X11UseLocalhost no" >> /etc/ssh/sshd_config \
      && sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
